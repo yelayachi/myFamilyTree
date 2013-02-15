@@ -5,6 +5,8 @@ $(document).ready(function() {
 	
 	// Load the data
 	var tree = Arboreal.parse(treeJson, 'children');
+	var layout = new FamilyTreeLayout();
+	layout.positionTree(tree);
 	
 	var stage = new Kinetic.Stage({
         container: 'treeCanvas',
@@ -16,14 +18,16 @@ $(document).ready(function() {
 	
 	tree.traverseDown(function (node) {
 		var identityGroup = new Kinetic.Group({
-			draggable: true
+			draggable: true,
+			name: node.id,
+			x: node.drawData.coordX,
+			y: node.drawData.coordY
 		});
 		var card = new Kinetic.Rect({
 			width: 400,
 			height: 150,
 			fill: 'green',
-			strokeWidth: 3,
-			name: node.id
+			strokeWidth: 3
 		});
 		var headShot = new Kinetic.Image({
 			x: 5,
