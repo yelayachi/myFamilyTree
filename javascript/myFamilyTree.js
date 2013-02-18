@@ -3,24 +3,27 @@
 	  
 $(document).ready(function() {
 	
+	
 	// Load the data
 	var tree = Arboreal.parse(treeJson, 'children');
-	var layout = new FamilyTreeLayout();
+	var layout = new FamilyTreeLayout(400, 150, 50, 100);
 	layout.positionTree(tree);
 	
+	  
 	var stage = new Kinetic.Stage({
         container: 'treeCanvas',
         width: 1500,
-        height: 800
+        height: 800,
+        scale : 0.1
     });
-	  
+
 	var layer = new Kinetic.Layer();
 	
 	tree.traverseDown(function (node) {
 		var identityGroup = new Kinetic.Group({
 			draggable: true,
 			name: node.id,
-			x: node.drawData.coordX,
+			x: node.drawData.coordX + (stage.getWidth()*2),
 			y: node.drawData.coordY
 		});
 		var card = new Kinetic.Rect({
