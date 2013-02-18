@@ -51,6 +51,10 @@ FamilyTreeLayout.prototype.secondWalk = function(vNode, m){
 		var vopNode = vNode;
 		var vimNode = vNode.leftSibling();
 		var vomNode = vipNode.leftMostSibling();
+		var sip = vipNode.drawData.modifier;
+		var sop = vopNode.drawData.modifier;
+		var sim = vimNode.drawData.modifier;
+		var som = vomNode.drawData.modifier;
 
 		while(this.nextRight(vimNode) != 0 && this.nextLeft(vipNode) != 0){
 			vimNode = this.nextRight(vimNode);
@@ -58,27 +62,27 @@ FamilyTreeLayout.prototype.secondWalk = function(vNode, m){
 			vomNode = this.nextLeft(vomNode);
 			vopNode = this.nextRight(vopNode);
 			vopNode.drawData.ancestor = vNode;
-			var shift = (vimNode.drawData.prelim + vimNode.drawData.modifier) 
-						- (vipNode.drawData.prelim + vipNode.drawData.modifier)
+			var shift = (vimNode.drawData.prelim + sim) 
+						- (vipNode.drawData.prelim + sip)
 						+ this.distance;
 
 			if(shift > 0){
 				this.moveSubtree(this.ancestor(vimNode, vNode, defaultAncestor), vNode, shift);
-				vipNode.drawData.modifier += shift;
-				vopNode.drawData.modifier += shift;
+				sip += shift;
+				sop += shift;
 			}
-			vimNode.drawData.modifier += vimNode.drawData.modifier;
-			vipNode.drawData.modifier += vipNode.drawData.modifier;
-			vomNode.drawData.modifier += vomNode.drawData.modifier;
-			vopNode.drawData.modifier += vopNode.drawData.modifier;
+			sim += vimNode.drawData.modifier;
+			sip += vipNode.drawData.modifier;
+			som += vomNode.drawData.modifier;
+			sop += vopNode.drawData.modifier;
 		}
 		if(this.nextRight(vimNode) != 0 && this.nextRight(vopNode) == 0){
 			vopNode.drawData.thread = this.nextRight(vimNode);
-			vopNode.drawData.modifier += (vimNode.drawData.modifier - vopNode.drawData.modifier);
+			vopNode.drawData.modifier += (sim - sop);
 		}
 		if(this.nextLeft(vipNode) != 0 && this.nextLeft(vomNode) == 0){
 			vomNode.drawData.thread = this.nextLeft(vipNode);
-			vomNode.drawData.modifier += (vipNode.drawData.modifier - vomNode.drawData.modifier);
+			vomNode.drawData.modifier += (sip - som);
 			defaultAncestor = vNode;
 		}
 	}
@@ -97,7 +101,7 @@ FamilyTreeLayout.prototype.moveSubtree = function(wmNode, wpNode, shift){
 FamilyTreeLayout.prototype.executeShifts = function(vNode){
 	var shift = 0;
 	var change = 0;
-	for (var i = vNode.children.length; i < 0; i--) {
+	for (var i = vNode.children.length-1; i >= 0; i--) {
 		var wNode = vNode.children[i];
 		wNode.drawData.prelim += shift;
 		wNode.drawData.modifier += shift;

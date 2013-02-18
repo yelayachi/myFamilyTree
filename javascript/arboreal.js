@@ -7,7 +7,7 @@ function Arboreal(parent, data, id) {
 	this.id = id || nodeId(parent);
 	this.children = [];
 	this.drawData = {prelim : 0, modifier : 0, thread: 0, ancestor: this, 
-						change : 0, coordX : 0, coordY: 0, width: 0, height: 0};
+						change : 0, shift:0, coordX : 0, coordY: 0, width: 0, height: 0};
 }
 
 Arboreal.parse = function (object, childrenAttr) {
