@@ -79,6 +79,10 @@ Arboreal.prototype.isRoot = function () {
 	return !this.parent;
 };
 
+Arboreal.prototype.hasParent = function () {
+	return this.parent;
+};
+
 Arboreal.prototype.isLeaf = function () {
 	return (this.children.length == 0);
 };
