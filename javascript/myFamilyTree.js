@@ -29,8 +29,8 @@
 			y: node.drawData.coordY
 		});
 		var card = new Kinetic.Rect({
-			width: 400,
-			height: 150,
+			width: layout.width,
+			height: layout.height,
 			fill: 'green',
 			strokeWidth: 3
 		});
@@ -73,6 +73,13 @@
 				width: 32,
 				height: 32,
 				image: imageCollapse
+			});
+
+			childButton.on('click', function(evt){
+				node.drawData.expandedChildren = !node.drawData.expandedChildren;
+				if(node.drawData.expandedChildren){
+					childButton.setImage(imageCollapse);
+				} else childButton.setImage(imageExpand);
 			});
 
 			identityGroup.add(card);
@@ -121,7 +128,7 @@
 		    
 		    
 
-		    layer.move(100, 0);
+		    layer.move(50, 0);
 			stage.add(layer);
 		};
 		imageObj.src= node.data.photoUrl;
@@ -168,10 +175,6 @@
 		e.preventDefault();
 	}, false);
 	
-	var shape = stage.get('#childButton')[0];
-	shape.on('click', function(evt){
-		
-	});
 	
  });
 
