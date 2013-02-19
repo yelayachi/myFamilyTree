@@ -1,16 +1,8 @@
-#log {
-    position:absolute;
-    top:10px;
-    font-size:1.0em;
-    font-weight:bold;
-    color:#23A4FF;
+html, body{
+  height: 100%;
 }
 
-#infovis {
-    position:relative;
-    width:1200px;
-    height:800px;
-    margin:auto;
-    overflow:hidden;
-	background-color:#1a1a1a;
+#treeCanvas {
+    width:100%;
+    min-height: 100%;
 }

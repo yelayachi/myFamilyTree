@@ -6,7 +6,7 @@ function Arboreal(parent, data, id) {
 	this.parent = parent || null;
 	this.id = id || nodeId(parent);
 	this.children = [];
-	this.drawData = {prelim : 0, modifier : 0, thread: 0, ancestor: this, 
+	this.drawData = {prelim : 0, modifier : 0, thread: 0, ancestor: this, expandedChildren: true,
 						change : 0, shift:0, coordX : 0, coordY: 0, width: 0, height: 0};
 }
 

@@ -9,12 +9,17 @@
 	  
 	var stage = new Kinetic.Stage({
         container: 'treeCanvas',
-        width: 1500,
-        height: 800,
-        scale : 0.3
+        width: $('#treeCanvas').width(),
+        height: $('#treeCanvas').height(),
+		draggable: true
     });
 
 	var layer = new Kinetic.Layer();
+	
+	var imageExpand = new Image();
+	imageExpand.src = 'images/toggle-expand.png';
+	var imageCollapse = new Image();
+	imageCollapse.src = 'images/toggle-collapse.png';
 	
 	tree.traverseDown(function (node) {
 		var identityGroup = new Kinetic.Group({
@@ -60,11 +65,23 @@
 				fill: 'blue',
 				width: 250
 			});
+			
+			var childButton = new Kinetic.Image({
+				id: 'childButton',
+				x: (layout.width-32) / 2,
+				y: layout.height - 32,
+				width: 32,
+				height: 32,
+				image: imageCollapse
+			});
 
 			identityGroup.add(card);
 			identityGroup.add(headShot);
 			identityGroup.add(fullName);
 			identityGroup.add(nodeInfo);
+			if(!node.isLeaf()){
+				identityGroup.add(childButton);
+			}
 			layer.add(identityGroup);
 
 			// Draw the links between the nodes
@@ -72,7 +89,7 @@
 		        points: [node.drawData.coordX + (layout.width / 2), node.drawData.coordY + layout.height, 
 		        		node.drawData.coordX + (layout.width / 2), node.drawData.coordY + layout.height + (layout.horizontalSeparation / 2)],
 		        stroke: 'black',
-		        strokeWidth: 10,
+		        strokeWidth: 5,
 		        lineCap: 'round',
 		        lineJoin: 'round'
 		    });
@@ -81,7 +98,7 @@
 		        points: [node.drawData.coordX + (layout.width / 2), node.drawData.coordY, 
 		        		node.drawData.coordX + (layout.width / 2), node.drawData.coordY - (layout.horizontalSeparation / 2)],
 		        stroke: 'black',
-		        strokeWidth: 10,
+		        strokeWidth: 5,
 		        lineCap: 'round',
 		        lineJoin: 'round'
 		    });
@@ -91,7 +108,7 @@
 			        points: [node.leftMostChild().drawData.coordX + (layout.width / 2), node.leftMostChild().drawData.coordY - (layout.horizontalSeparation / 2), 
 			        		node.rightMostChild().drawData.coordX + (layout.width / 2), node.rightMostChild().drawData.coordY - (layout.horizontalSeparation / 2)],
 			        stroke: 'black',
-			        strokeWidth: 10,
+			        strokeWidth: 5,
 			        lineCap: 'round',
 			        lineJoin: 'round'
 			    });
@@ -109,17 +126,53 @@
 		};
 		imageObj.src= node.data.photoUrl;
 
+	});
 
-		
-		
-		
+	function getDistance(p1, p2) {
+        return Math.sqrt(Math.pow((p2.x - p1.x), 2) + Math.pow((p2.y - p1.y), 2));
+    }
+	  
+	stage.on('touchmove', function(evt) {
+        var touch1 = evt.touches[0];
+        var touch2 = evt.touches[1];
+
+        if(touch1 && touch2) {
+          var dist = getDistance({
+            x: touch1.clientX,
+            y: touch1.clientY
+          }, {
+            x: touch2.clientX,
+            y: touch2.clientY
+          });
+
+          if(!lastDist) {
+            lastDist = dist;
+          }
+
+          var scale = stage.getScale().x * dist / lastDist;
+
+          stage.setScale(scale);
+          stage.draw();
+          lastDist = dist;
+        }
+    }, false);
+
+    stage.on('touchend', function() {
+        lastDist = 0;
+    }, false);
+	  
+	document.getElementById("treeCanvas").addEventListener("mousewheel", function(e) {
+		var zoomAmount = e.wheelDeltaY*0.0001;
+		stage.setScale(stage.getScale().x+zoomAmount)
+		stage.draw();
+		e.preventDefault();
+	}, false);
+	
+	var shape = stage.get('#childButton')[0];
+	shape.on('click', function(evt){
 		
 	});
 	
-	
-   
-   
-   
  });
 
 
