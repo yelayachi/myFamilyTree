@@ -20,119 +20,119 @@
 	imageExpand.src = 'images/toggle-expand.png';
 	var imageCollapse = new Image();
 	imageCollapse.src = 'images/toggle-collapse.png';
+	var childButton = new Kinetic.Image({
+					id: 'childButton',
+					x: (layout.width-32) / 2,
+					y: layout.height - 32,
+					width: 32,
+					height: 32,
+					image: imageCollapse
+				});
 	
 	tree.traverseDown(function (node) {
-		var identityGroup = new Kinetic.Group({
-			draggable: false,
-			name: node.id,
-			x: node.drawData.coordX,
-			y: node.drawData.coordY
-		});
-		var card = new Kinetic.Rect({
-			width: layout.width,
-			height: layout.height,
-			fill: 'green',
-			strokeWidth: 3
-		});
-		
-		var imageObj = new Image();
-		
-		imageObj.onload = function() {
-			var headShot = new Kinetic.Image({
-				x: 5,
-				y: 5,
-				width: 128,
-				height: 128,
-				image: imageObj
+		if(node.drawData.visible){
+			var identityGroup = new Kinetic.Group({
+				draggable: false,
+				name: node.id,
+				x: node.drawData.coordX,
+				y: node.drawData.coordY
+			});
+			var card = new Kinetic.Rect({
+				width: layout.width,
+				height: layout.height,
+				fill: 'green',
+				strokeWidth: 3
 			});
 			
-			var fullName = new Kinetic.Text({
-				x: 132,
-				y: 5,
-				text: node.data.name,
-				fontSize: 24,
-				fontFamily: 'Calibri',
-				fill: 'blue',
-				width: 250,
-				align: 'center'
-			});
-			var nodeInfo = new Kinetic.Text({
-				x: 132,
-				y: 100,
-				text: "Date de naissance : "+node.data.birthDate,
-				fontSize: 14,
-				fontFamily: 'Calibri',
-				fill: 'blue',
-				width: 250
-			});
+			var imageObj = new Image();
 			
-			var childButton = new Kinetic.Image({
-				id: 'childButton',
-				x: (layout.width-32) / 2,
-				y: layout.height - 32,
-				width: 32,
-				height: 32,
-				image: imageCollapse
-			});
+			imageObj.onload = function() {
+				var headShot = new Kinetic.Image({
+					x: 5,
+					y: 5,
+					width: 128,
+					height: 128,
+					image: imageObj
+				});
+				
+				var fullName = new Kinetic.Text({
+					x: 132,
+					y: 5,
+					text: node.data.name,
+					fontSize: 24,
+					fontFamily: 'Calibri',
+					fill: 'blue',
+					width: 250,
+					align: 'center'
+				});
+				var nodeInfo = new Kinetic.Text({
+					x: 132,
+					y: 100,
+					text: "Date de naissance : "+node.data.birthDate,
+					fontSize: 14,
+					fontFamily: 'Calibri',
+					fill: 'blue',
+					width: 250
+				});
 
-			childButton.on('click', function(evt){
-				node.drawData.expandedChildren = !node.drawData.expandedChildren;
-				if(node.drawData.expandedChildren){
-					childButton.setImage(imageCollapse);
-				} else childButton.setImage(imageExpand);
-			});
+				identityGroup.add(card);
+				identityGroup.add(headShot);
+				identityGroup.add(fullName);
+				identityGroup.add(nodeInfo);
+				if(!node.isLeaf()){
+					identityGroup.add(childButton);
+				}
+				layer.add(identityGroup);
 
-			identityGroup.add(card);
-			identityGroup.add(headShot);
-			identityGroup.add(fullName);
-			identityGroup.add(nodeInfo);
-			if(!node.isLeaf()){
-				identityGroup.add(childButton);
-			}
-			layer.add(identityGroup);
-
-			// Draw the links between the nodes
-			var linkDown = new Kinetic.Line({
-		        points: [node.drawData.coordX + (layout.width / 2), node.drawData.coordY + layout.height, 
-		        		node.drawData.coordX + (layout.width / 2), node.drawData.coordY + layout.height + (layout.horizontalSeparation / 2)],
-		        stroke: 'black',
-		        strokeWidth: 5,
-		        lineCap: 'round',
-		        lineJoin: 'round'
-		    });
-
-		    var linkUp = new Kinetic.Line({
-		        points: [node.drawData.coordX + (layout.width / 2), node.drawData.coordY, 
-		        		node.drawData.coordX + (layout.width / 2), node.drawData.coordY - (layout.horizontalSeparation / 2)],
-		        stroke: 'black',
-		        strokeWidth: 5,
-		        lineCap: 'round',
-		        lineJoin: 'round'
-		    });
-
-		    if(!node.isLeaf()){
-		    	var linkSiblings = new Kinetic.Line({
-			        points: [node.leftMostChild().drawData.coordX + (layout.width / 2), node.leftMostChild().drawData.coordY - (layout.horizontalSeparation / 2), 
-			        		node.rightMostChild().drawData.coordX + (layout.width / 2), node.rightMostChild().drawData.coordY - (layout.horizontalSeparation / 2)],
+				// Draw the links between the nodes
+				var linkDown = new Kinetic.Line({
+			        points: [node.drawData.coordX + (layout.width / 2), node.drawData.coordY + layout.height, 
+			        		node.drawData.coordX + (layout.width / 2), node.drawData.coordY + layout.height + (layout.horizontalSeparation / 2)],
 			        stroke: 'black',
 			        strokeWidth: 5,
 			        lineCap: 'round',
 			        lineJoin: 'round'
 			    });
-			    layer.add(linkDown);
-		    	layer.add(linkSiblings);
-		    }
-		    if(node.hasParent()){
-		    	layer.add(linkUp);
-		    }
-		    
-		    
 
-		    layer.move(50, 0);
-			stage.add(layer);
-		};
-		imageObj.src= node.data.photoUrl;
+			    var linkUp = new Kinetic.Line({
+			        points: [node.drawData.coordX + (layout.width / 2), node.drawData.coordY, 
+			        		node.drawData.coordX + (layout.width / 2), node.drawData.coordY - (layout.horizontalSeparation / 2)],
+			        stroke: 'black',
+			        strokeWidth: 5,
+			        lineCap: 'round',
+			        lineJoin: 'round'
+			    });
 
+			    if(!node.isLeaf()){
+			    	var linkSiblings = new Kinetic.Line({
+				        points: [node.leftMostChild().drawData.coordX + (layout.width / 2), node.leftMostChild().drawData.coordY - (layout.horizontalSeparation / 2), 
+				        		node.rightMostChild().drawData.coordX + (layout.width / 2), node.rightMostChild().drawData.coordY - (layout.horizontalSeparation / 2)],
+				        stroke: 'black',
+				        strokeWidth: 5,
+				        lineCap: 'round',
+				        lineJoin: 'round'
+				    });
+				    layer.add(linkDown);
+			    	layer.add(linkSiblings);
+			    }
+			    if(node.hasParent()){
+			    	layer.add(linkUp);
+			    }
+			    
+			    layer.setOffset(-(stage.getWidth() - layout.width)/2, 0);
+				stage.add(layer);
+				
+			};
+			imageObj.src= node.data.photoUrl;
+		}
+	});
+
+	childButton.on('click', function(evt){
+					node.drawData.expanded = !node.drawData.expanded;
+					if(node.drawData.expanded){
+						childButton.setImage(imageCollapse);
+					} else childButton.setImage(imageExpand);
+					stage.draw();
 	});
 
 	function getDistance(p1, p2) {
@@ -170,7 +170,7 @@
 	  
 	document.getElementById("treeCanvas").addEventListener("mousewheel", function(e) {
 		var zoomAmount = e.wheelDeltaY*0.0001;
-		stage.setScale(stage.getScale().x+zoomAmount)
+		stage.setScale(stage.getScale().x+zoomAmount);
 		stage.draw();
 		e.preventDefault();
 	}, false);
