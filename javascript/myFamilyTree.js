@@ -6,13 +6,62 @@
 	var layout = new FamilyTreeLayout(400, 150, 50, 100);
 	layout.positionTree(tree);
 	
-	  
 	var stage = new Kinetic.Stage({
         container: 'treeCanvas',
         width: $('#treeCanvas').width(),
         height: $('#treeCanvas').height(),
-		draggable: true
+		draggable: true,
+		scale : 0.5
     });
+
+	drawTree(tree, stage, layout);
+	  
+	stage.on('touchmove', function(evt) {
+        var touch1 = evt.touches[0];
+        var touch2 = evt.touches[1];
+
+        if(touch1 && touch2) {
+          var dist = getDistance({
+            x: touch1.clientX,
+            y: touch1.clientY
+          }, {
+            x: touch2.clientX,
+            y: touch2.clientY
+          });
+
+          if(!lastDist) {
+            lastDist = dist;
+          }
+
+          var scale = stage.getScale().x * dist / lastDist;
+
+          stage.setScale(scale);
+          stage.draw();
+          lastDist = dist;
+        }
+    }, false);
+
+    stage.on('touchend', function() {
+        lastDist = 0;
+    }, false);
+	  
+	document.getElementById("treeCanvas").addEventListener("mousewheel", function(e) {
+		var zoomAmount = e.wheelDeltaY*0.0001;
+		stage.setScale(stage.getScale().x+zoomAmount);
+		stage.draw();
+		e.preventDefault();
+	}, false);
+
+	
+	
+	
+ });
+
+function getDistance(p1, p2) {
+        return Math.sqrt(Math.pow((p2.x - p1.x), 2) + Math.pow((p2.y - p1.y), 2));
+    }
+
+function drawTree(tree, stage, layout){
 
 	var layer = new Kinetic.Layer();
 	
@@ -20,15 +69,7 @@
 	imageExpand.src = 'images/toggle-expand.png';
 	var imageCollapse = new Image();
 	imageCollapse.src = 'images/toggle-collapse.png';
-	var childButton = new Kinetic.Image({
-					id: 'childButton',
-					x: (layout.width-32) / 2,
-					y: layout.height - 32,
-					width: 32,
-					height: 32,
-					image: imageCollapse
-				});
-	
+
 	tree.traverseDown(function (node) {
 		if(node.drawData.visible){
 			var identityGroup = new Kinetic.Group({
@@ -45,8 +86,8 @@
 			});
 			
 			var imageObj = new Image();
+			imageObj.src= node.data.photoUrl;
 			
-			imageObj.onload = function() {
 				var headShot = new Kinetic.Image({
 					x: 5,
 					y: 5,
@@ -73,6 +114,31 @@
 					fontFamily: 'Calibri',
 					fill: 'blue',
 					width: 250
+				});
+
+				var childButton = new Kinetic.Image({
+					x: (layout.width-32) / 2,
+					y: layout.height - 32,
+					width: 32,
+					height: 32,
+					image: imageCollapse
+				});
+
+				childButton.on('click', function(evt){
+					node.drawData.expanded = !node.drawData.expanded;
+					if(node.drawData.expanded){
+						childButton.setImage(imageCollapse);
+					} else {
+						childButton.setImage(imageExpand);
+					}
+					node.traverseDown(function (subNode) {
+						if(node.id != subNode.id){
+							subNode.drawData.visible = false;
+						}
+					});
+					//layout.positionTree(tree);
+					layer.clear();
+					drawTree(tree, stage, layout);
 				});
 
 				identityGroup.add(card);
@@ -118,64 +184,11 @@
 			    if(node.hasParent()){
 			    	layer.add(linkUp);
 			    }
-			    
-			    layer.setOffset(-(stage.getWidth() - layout.width)/2, 0);
-				stage.add(layer);
-				
-			};
-			imageObj.src= node.data.photoUrl;
 		}
 	});
 
-	childButton.on('click', function(evt){
-					node.drawData.expanded = !node.drawData.expanded;
-					if(node.drawData.expanded){
-						childButton.setImage(imageCollapse);
-					} else childButton.setImage(imageExpand);
-					stage.draw();
-	});
-
-	function getDistance(p1, p2) {
-        return Math.sqrt(Math.pow((p2.x - p1.x), 2) + Math.pow((p2.y - p1.y), 2));
-    }
-	  
-	stage.on('touchmove', function(evt) {
-        var touch1 = evt.touches[0];
-        var touch2 = evt.touches[1];
-
-        if(touch1 && touch2) {
-          var dist = getDistance({
-            x: touch1.clientX,
-            y: touch1.clientY
-          }, {
-            x: touch2.clientX,
-            y: touch2.clientY
-          });
-
-          if(!lastDist) {
-            lastDist = dist;
-          }
-
-          var scale = stage.getScale().x * dist / lastDist;
-
-          stage.setScale(scale);
-          stage.draw();
-          lastDist = dist;
-        }
-    }, false);
-
-    stage.on('touchend', function() {
-        lastDist = 0;
-    }, false);
-	  
-	document.getElementById("treeCanvas").addEventListener("mousewheel", function(e) {
-		var zoomAmount = e.wheelDeltaY*0.0001;
-		stage.setScale(stage.getScale().x+zoomAmount);
-		stage.draw();
-		e.preventDefault();
-	}, false);
-	
-	
- });
+	layer.setOffset((stage.getWidth() - layout.width) * -0.5, 0);
+	stage.add(layer);	
+}
 
 

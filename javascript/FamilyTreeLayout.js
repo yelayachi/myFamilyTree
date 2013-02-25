@@ -41,10 +41,8 @@ FamilyTreeLayout.prototype.secondWalk = function(vNode, m){
 	vNode.drawData.coordX = vNode.drawData.prelim + m;
 	vNode.drawData.coordY = vNode.depth * (this.height + this.horizontalSeparation);
 	for (var i = 0; i < vNode.children.length; i++) {
-		if(vNode.drawData.expanded){
+		if(vNode.drawData.expanded && vNode.drawData.visible){
 			this.secondWalk(vNode.children[i], m + vNode.drawData.modifier);
-		} else{
-			vNode.children[i].drawData.visible = false;
 		}
 		
 	};
