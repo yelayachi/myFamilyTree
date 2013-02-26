@@ -1,6 +1,4 @@
 ﻿$(document).ready(function() {
-	
-	
 	// Load the data
 	var tree = Arboreal.parse(treeJson, 'children');
 	var layout = new FamilyTreeLayout(400, 150, 50, 100);
@@ -52,9 +50,7 @@
 		e.preventDefault();
 	}, false);
 
-	
-	
-	
+
  });
 
 function getDistance(p1, p2) {
@@ -120,24 +116,37 @@ function drawTree(tree, stage, layout){
 					x: (layout.width-32) / 2,
 					y: layout.height - 32,
 					width: 32,
-					height: 32,
-					image: imageCollapse
+					height: 32
 				});
-
-				childButton.on('click', function(evt){
-					node.drawData.expanded = !node.drawData.expanded;
-					if(node.drawData.expanded){
+				if(node.drawData.expanded){
 						childButton.setImage(imageCollapse);
 					} else {
 						childButton.setImage(imageExpand);
 					}
-					node.traverseDown(function (subNode) {
-						if(node.id != subNode.id){
-							subNode.drawData.visible = false;
-						}
-					});
+				
+				childButton.on('click', function(evt){
+					node.drawData.expanded = !node.drawData.expanded;
+					if(node.drawData.expanded){
+						childButton.setImage(imageCollapse);
+						node.traverseDown(function (subNode) {
+							if(node.id != subNode.id){
+								subNode.drawData.visible = true;
+								//if(!subNode.drawData.expanded) return;
+							}
+						});
+					} else {
+						childButton.setImage(imageExpand);
+						node.traverseDown(function (subNode) {
+							if(node.id != subNode.id){
+								subNode.drawData.visible = false;
+							}
+						});
+						
+					}
+
+					
 					//layout.positionTree(tree);
-					layer.clear();
+					layer.remove();
 					drawTree(tree, stage, layout);
 				});
 
@@ -149,7 +158,7 @@ function drawTree(tree, stage, layout){
 					identityGroup.add(childButton);
 				}
 				layer.add(identityGroup);
-
+				
 				// Draw the links between the nodes
 				var linkDown = new Kinetic.Line({
 			        points: [node.drawData.coordX + (layout.width / 2), node.drawData.coordY + layout.height, 
@@ -168,8 +177,10 @@ function drawTree(tree, stage, layout){
 			        lineCap: 'round',
 			        lineJoin: 'round'
 			    });
-
-			    if(!node.isLeaf()){
+				
+				var linkGroup = new Kinetic.Group();
+				
+			    if(!node.isLeaf() && node.drawData.expanded){
 			    	var linkSiblings = new Kinetic.Line({
 				        points: [node.leftMostChild().drawData.coordX + (layout.width / 2), node.leftMostChild().drawData.coordY - (layout.horizontalSeparation / 2), 
 				        		node.rightMostChild().drawData.coordX + (layout.width / 2), node.rightMostChild().drawData.coordY - (layout.horizontalSeparation / 2)],
@@ -178,15 +189,19 @@ function drawTree(tree, stage, layout){
 				        lineCap: 'round',
 				        lineJoin: 'round'
 				    });
-				    layer.add(linkDown);
-			    	layer.add(linkSiblings);
+					
+				    linkGroup.add(linkDown);
+			    	linkGroup.add(linkSiblings);
 			    }
 			    if(node.hasParent()){
-			    	layer.add(linkUp);
+			    	linkGroup.add(linkUp);
 			    }
+				
+				layer.add(linkGroup);
 		}
 	});
-
+	
+	
 	layer.setOffset((stage.getWidth() - layout.width) * -0.5, 0);
 	stage.add(layer);	
 }
