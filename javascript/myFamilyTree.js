@@ -9,7 +9,7 @@
         width: $('#treeCanvas').width(),
         height: $('#treeCanvas').height(),
 		draggable: true,
-		scale : 0.5
+		scale : 0.3
     });
 
 	drawTree(tree, stage, layout);
@@ -68,9 +68,11 @@ function drawTree(tree, stage, layout){
 
 	tree.traverseDown(function (node) {
 		if(node.drawData.visible){
+			var nodeAndLinkLayer = new Kinetic.Layer({id: node.id});
+			
 			var identityGroup = new Kinetic.Group({
+				name: "node",
 				draggable: false,
-				name: node.id,
 				x: node.drawData.coordX,
 				y: node.drawData.coordY
 			});
@@ -128,26 +130,31 @@ function drawTree(tree, stage, layout){
 					node.drawData.expanded = !node.drawData.expanded;
 					if(node.drawData.expanded){
 						childButton.setImage(imageCollapse);
+						var fullGroup = evt.shape.parent;
 						node.traverseDown(function (subNode) {
 							if(node.id != subNode.id){
-								subNode.drawData.visible = true;
+								
+								//subNode.drawData.visible = true;
 								//if(!subNode.drawData.expanded) return;
 							}
 						});
 					} else {
 						childButton.setImage(imageExpand);
+						var clickedNode = stage.get('#'+node.id)[0];
+						clickedNode.get('.link')[0].removeChildren();
 						node.traverseDown(function (subNode) {
 							if(node.id != subNode.id){
-								subNode.drawData.visible = false;
+								var child = stage.get('#'+subNode.id)[0];
+								child.remove();
 							}
 						});
 						
 					}
 
-					
+					stage.draw();
 					//layout.positionTree(tree);
-					layer.remove();
-					drawTree(tree, stage, layout);
+					//layer.remove();
+					//drawTree(tree, stage, layout);
 				});
 
 				identityGroup.add(card);
@@ -157,7 +164,8 @@ function drawTree(tree, stage, layout){
 				if(!node.isLeaf()){
 					identityGroup.add(childButton);
 				}
-				layer.add(identityGroup);
+				
+				var linkGroup = new Kinetic.Group({name:"link"});
 				
 				// Draw the links between the nodes
 				var linkDown = new Kinetic.Line({
@@ -169,17 +177,6 @@ function drawTree(tree, stage, layout){
 			        lineJoin: 'round'
 			    });
 
-			    var linkUp = new Kinetic.Line({
-			        points: [node.drawData.coordX + (layout.width / 2), node.drawData.coordY, 
-			        		node.drawData.coordX + (layout.width / 2), node.drawData.coordY - (layout.horizontalSeparation / 2)],
-			        stroke: 'black',
-			        strokeWidth: 5,
-			        lineCap: 'round',
-			        lineJoin: 'round'
-			    });
-				
-				var linkGroup = new Kinetic.Group();
-				
 			    if(!node.isLeaf() && node.drawData.expanded){
 			    	var linkSiblings = new Kinetic.Line({
 				        points: [node.leftMostChild().drawData.coordX + (layout.width / 2), node.leftMostChild().drawData.coordY - (layout.horizontalSeparation / 2), 
@@ -192,18 +189,31 @@ function drawTree(tree, stage, layout){
 					
 				    linkGroup.add(linkDown);
 			    	linkGroup.add(linkSiblings);
+					
+					node.children.forEach(function (subNode) {
+							var linkUp = new Kinetic.Line({
+								points: [subNode.drawData.coordX + (layout.width / 2), subNode.drawData.coordY, 
+										subNode.drawData.coordX + (layout.width / 2), subNode.drawData.coordY - (layout.horizontalSeparation / 2)],
+								stroke: 'black',
+								strokeWidth: 5,
+								lineCap: 'round',
+								lineJoin: 'round'
+							});
+							linkGroup.add(linkUp);
+					});
 			    }
-			    if(node.hasParent()){
-			    	linkGroup.add(linkUp);
-			    }
+			    
 				
-				layer.add(linkGroup);
+				nodeAndLinkLayer.add(linkGroup);
+				nodeAndLinkLayer.add(identityGroup);
+				stage.add(nodeAndLinkLayer);
+				
 		}
 	});
 	
 	
-	layer.setOffset((stage.getWidth() - layout.width) * -0.5, 0);
-	stage.add(layer);	
+	stage.setOffset((stage.getWidth() - layout.width) * -0.5, 0);
+	stage.draw();
 }
 
 
