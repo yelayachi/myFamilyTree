@@ -1,8 +1,8 @@
 ﻿var imageExpand = new Image();
-	imageExpand.src = 'images/toggle-expand.png';
-	var imageCollapse = new Image();
-	imageCollapse.src = 'images/toggle-collapse.png';
-	
+imageExpand.src = 'images/toggle-expand.png';
+var imageCollapse = new Image();
+imageCollapse.src = 'images/toggle-collapse.png';
+
 $(document).ready(function () {
 	// Load the data
 	var tree = Arboreal.parse(treeJson, 'children');
@@ -54,8 +54,6 @@ $(document).ready(function () {
 		stage.draw();
 		e.preventDefault();
 	}, false);
-	
-	
 
 });
 
@@ -66,51 +64,60 @@ function getDistance(p1, p2) {
 function drawTree(tree, stage, layout) {
 
 	tree.traverseDown(function (node) {
-		
-			var nodeAndLinkLayer = new Kinetic.Layer({
-					id : node.id
-				});
-			var identityGroup = drawIdentityGroup(node, layout);
-			var linkGroup = drawLinkGroup(node, layout);
-			
-			nodeAndLinkLayer.add(linkGroup);
-			nodeAndLinkLayer.add(identityGroup);
-			stage.add(nodeAndLinkLayer);
+		drawIdentityAndLinksLayer(node, stage, layout);
 	});
 
 	stage.setOffset((stage.getWidth() - layout.width) * -0.5, 0);
 	stage.draw();
 }
 
-function extendCollapseChildEvt(evt,node, childButton){
+function extendCollapseChildEvt(evt, node, childButton, layout) {
 	node.drawData.expanded = !node.drawData.expanded;
-				if (node.drawData.expanded) {
-					childButton.setImage(imageCollapse);
-					var fullGroup = evt.shape.parent;
-					node.traverseDown(function (subNode) {
-						if (node.id != subNode.id) {
+	var clickedLayer = evt.shape.parent.parent;
 
-							//subNode.drawData.visible = true;
-							//if(!subNode.drawData.expanded) return;
-						}
-					});
-				} else {
-					childButton.setImage(imageExpand);
-					var clickedLayer = evt.shape.parent.parent;
-					clickedLayer.get('.link')[0].removeChildren();
-					node.traverseDown(function (subNode) {
-						if (node.id != subNode.id) {
-							var child = clickedLayer.parent.get('#' + subNode.id)[0];
-							child.remove();
-						}
-					});
-
+	if (node.drawData.expanded) {
+		childButton.setImage(imageCollapse);
+		var fullGroup = evt.shape.parent;
+		clickedLayer.add(drawLinkGroup(node, layout));
+		node.traverseDown(function (subNode) {
+			if (node.id != subNode.id) {
+				drawIdentityAndLinksLayer(subNode, clickedLayer.parent, layout);
+			}
+		});
+	} else {
+		childButton.setImage(imageExpand);
+		clickedLayer.get('.link')[0].remove();
+		node.traverseDown(function (subNode) {
+			if (node.id != subNode.id) {
+				var child = clickedLayer.parent.get('#' + subNode.id)[0];
+				if(!_.isUndefined(child)){
+					child.remove();
 				}
+			}
+		});
 
-				clickedLayer.draw();
-				//layout.positionTree(tree);
-				//layer.remove();
-				//drawTree(tree, stage, layout);
+	}
+
+	clickedLayer.draw();
+	//layout.positionTree(tree);
+	//layer.remove();
+	//drawTree(tree, stage, layout);
+}
+
+
+function drawIdentityAndLinksLayer(node, stage, layout){
+	var nodeAndLinkLayer = new Kinetic.Layer({
+				id : node.id
+			});
+		var identityGroup = drawIdentityGroup(node, layout);
+		var linkGroup = drawLinkGroup(node, layout);
+		
+		if(!_.isUndefined(linkGroup)){
+			nodeAndLinkLayer.add(linkGroup);
+		}
+		
+		nodeAndLinkLayer.add(identityGroup);
+		stage.add(nodeAndLinkLayer);
 }
 
 function drawIdentityGroup(node, layout) {
@@ -158,43 +165,35 @@ function drawIdentityGroup(node, layout) {
 			width : 250
 		});
 	var childButton = new Kinetic.Image({
-			name:"childButton",
+			name : "childButton",
 			x : (layout.width - 32) / 2,
 			y : layout.height - 32,
 			width : 32,
 			height : 32,
-			image: imageCollapse
+			image : imageCollapse
 		});
-		
-	childButton.on('click', function (evt) {extendCollapseChildEvt(evt, node, this)});
 
-		identityGroup.add(card);
-		identityGroup.add(headShot);
-		identityGroup.add(fullName);
-		identityGroup.add(nodeInfo);
-		if (!node.isLeaf()) {
-			identityGroup.add(childButton);
-		}
-		
-		return identityGroup;
+	childButton.on('click', function (evt) {
+		extendCollapseChildEvt(evt, node, this, layout)
+	});
+
+	identityGroup.add(card);
+	identityGroup.add(headShot);
+	identityGroup.add(fullName);
+	identityGroup.add(nodeInfo);
+	if (!node.isLeaf()) {
+		identityGroup.add(childButton);
+	}
+
+	return identityGroup;
 }
 
 function drawLinkGroup(node, layout) {
-	var linkGroup = new Kinetic.Group({
-			name : "link"
-		});
-
-	// Draw the links between the nodes
-	var linkDown = new Kinetic.Line({
-			points : [node.drawData.coordX + (layout.width / 2), node.drawData.coordY + layout.height,
-				node.drawData.coordX + (layout.width / 2), node.drawData.coordY + layout.height + (layout.horizontalSeparation / 2)],
-			stroke : 'black',
-			strokeWidth : 5,
-			lineCap : 'round',
-			lineJoin : 'round'
-		});
-
 	if (!node.isLeaf() && node.drawData.expanded) {
+		var linkGroup = new Kinetic.Group({
+				name : "link"
+			});
+		
 		var linkSiblings = new Kinetic.Line({
 				points : [node.leftMostChild().drawData.coordX + (layout.width / 2), node.leftMostChild().drawData.coordY - (layout.horizontalSeparation / 2),
 					node.rightMostChild().drawData.coordX + (layout.width / 2), node.rightMostChild().drawData.coordY - (layout.horizontalSeparation / 2)],
@@ -203,6 +202,15 @@ function drawLinkGroup(node, layout) {
 				lineCap : 'round',
 				lineJoin : 'round'
 			});
+			
+		var linkDown = new Kinetic.Line({
+			points : [node.drawData.coordX + (layout.width / 2), node.drawData.coordY + layout.height,
+				node.drawData.coordX + (layout.width / 2), node.drawData.coordY + layout.height + (layout.horizontalSeparation / 2)],
+			stroke : 'black',
+			strokeWidth : 5,
+			lineCap : 'round',
+			lineJoin : 'round'
+		});
 
 		linkGroup.add(linkDown);
 		linkGroup.add(linkSiblings);
@@ -218,6 +226,7 @@ function drawLinkGroup(node, layout) {
 				});
 			linkGroup.add(linkUp);
 		});
+		return linkGroup;
 	}
-	return linkGroup;
+	
 }
