@@ -14,13 +14,13 @@ FamilyTreeLayout.prototype.positionTree = function(root){
 }
 
 FamilyTreeLayout.prototype.firstWalk = function(vNode){
-	if(vNode.isLeaf() || !vNode.drawData.expanded){
+	if(vNode.isLeaf()){
 		if(vNode.hasLeftSibling()){
 			vNode.drawData.prelim = vNode.leftSibling().drawData.prelim + this.distance;
 		}else{
 			vNode.drawData.prelim = 0;
 		}
-	}else if(!vNode.isLeaf() && vNode.drawData.expanded){
+	}else if(!vNode.isLeaf()){
 		var defaultAncestor = vNode.firstChild();
 		for(var i = 0; i < vNode.children.length; i++){
 			this.firstWalk(vNode.children[i]);
@@ -40,11 +40,11 @@ FamilyTreeLayout.prototype.firstWalk = function(vNode){
 FamilyTreeLayout.prototype.secondWalk = function(vNode, m){
 	vNode.drawData.coordX = vNode.drawData.prelim + m;
 	vNode.drawData.coordY = vNode.depth * (this.height + this.horizontalSeparation);
-	if(vNode.drawData.expanded){
+	
 		for (var i = 0; i < vNode.children.length; i++) {
 				this.secondWalk(vNode.children[i], m + vNode.drawData.modifier);
 		};
-	}
+	
 }
 
  FamilyTreeLayout.prototype.apportion = function(vNode, defaultAncestor){
