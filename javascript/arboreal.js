@@ -146,14 +146,6 @@ Arboreal.prototype.parent = function () {
 	return this.parent;
 };
 
-Arboreal.prototype.traverseUp = function (iterator) {
-	_traverse(this, iterator, _traverseUp);
-};
-
-Arboreal.prototype.traverseDown = function (iterator) {
-	_traverse(this, iterator, _traverseDown);
-};
-
 Arboreal.prototype.toString = function () {
 	var lines = [];
 	
@@ -222,6 +214,10 @@ Arboreal.prototype.toArray = function () {
 	return nodeList;
 };
 
+Arboreal.prototype.getIndexInCurrentLevel = function () {
+	return this.id.split("/").pop();
+};
+
 Object.defineProperty(Arboreal.prototype, "length", {
 	get : function () {
 		return this.toArray().length;
@@ -233,6 +229,18 @@ function include(array, item) {
 	return array.indexOf(item) > -1;
 }
 
+Arboreal.prototype.traverseUp = function (iterator) {
+	_traverse(this, iterator, _traverseUp);
+};
+
+Arboreal.prototype.traverseDown = function (iterator) {
+	_traverse(this, iterator, _traverseDown);
+};
+
+Arboreal.prototype.traverseDownWithBreakCondition = function (iterator) {
+	_traverse(this, iterator, _traverseDown);
+};
+
 function _traverseDown(context, iterator) {
 	var doContinue = true;
 	
@@ -242,7 +250,7 @@ function _traverseDown(context, iterator) {
 		
 		if (!doContinue)
 			return;
-		
+
 		if (iterator(node) === false) {
 			//break the traversal loop if the iterator returns a falsy value
 			doContinue = false;

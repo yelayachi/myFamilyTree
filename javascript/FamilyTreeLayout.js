@@ -1,10 +1,10 @@
 'use strict';
 
-function FamilyTreeLayout(width, height, verticalSeparation, horizontalSeparation){
-	this.width = width;
-	this.height = height;
-	this.horizontalSeparation = horizontalSeparation;
-	this.verticalSeparation = verticalSeparation;
+function FamilyTreeLayout(settings){
+	this.width = settings.nodeWidth;
+	this.height = settings.nodeHeight;
+	this.horizontalSeparation = settings.horizontalSeparation;
+	this.verticalSeparation = settings.verticalSeparation;
 	this.distance = this.width + this.verticalSeparation;
 }
 
@@ -40,12 +40,11 @@ FamilyTreeLayout.prototype.firstWalk = function(vNode){
 FamilyTreeLayout.prototype.secondWalk = function(vNode, m){
 	vNode.drawData.coordX = vNode.drawData.prelim + m;
 	vNode.drawData.coordY = vNode.depth * (this.height + this.horizontalSeparation);
-	for (var i = 0; i < vNode.children.length; i++) {
-		if(vNode.drawData.expanded && vNode.drawData.visible){
-			this.secondWalk(vNode.children[i], m + vNode.drawData.modifier);
-		}
-		
-	};
+	if(vNode.drawData.expanded){
+		for (var i = 0; i < vNode.children.length; i++) {
+				this.secondWalk(vNode.children[i], m + vNode.drawData.modifier);
+		};
+	}
 }
 
  FamilyTreeLayout.prototype.apportion = function(vNode, defaultAncestor){
@@ -121,14 +120,14 @@ FamilyTreeLayout.prototype.ancestor = function(vimNode, vNode, defaultAncestor){
 }
 
 FamilyTreeLayout.prototype.nextLeft = function(vNode){
-	if(!vNode.isLeaf() && vNode.drawData.expanded){
+	if(!vNode.isLeaf()){
 		return vNode.leftMostChild(); // the leftmost child
 	}
 	else return vNode.drawData.thread;
 }
 
 FamilyTreeLayout.prototype.nextRight = function(vNode){
-	if(!vNode.isLeaf() && vNode.drawData.expanded){
+	if(!vNode.isLeaf()){
 		return vNode.rightMostChild(); // the leftmost child
 	}
 	else return vNode.drawData.thread;
