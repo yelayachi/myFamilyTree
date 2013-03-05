@@ -9,18 +9,19 @@ function FamilyTreeLayout(settings){
 }
 
 FamilyTreeLayout.prototype.positionTree = function(root){
+	this.initDrawData(root);
 	this.firstWalk(root);
 	this.secondWalk(root, -root.drawData.prelim);
 }
 
 FamilyTreeLayout.prototype.firstWalk = function(vNode){
-	if(vNode.isLeaf()){
+	if(vNode.isLeaf() || !vNode.drawData.expanded){
 		if(vNode.hasLeftSibling()){
 			vNode.drawData.prelim = vNode.leftSibling().drawData.prelim + this.distance;
 		}else{
 			vNode.drawData.prelim = 0;
 		}
-	}else if(!vNode.isLeaf()){
+	}else if(!vNode.isLeaf() && vNode.drawData.expanded){
 		var defaultAncestor = vNode.firstChild();
 		for(var i = 0; i < vNode.children.length; i++){
 			this.firstWalk(vNode.children[i]);
@@ -40,11 +41,11 @@ FamilyTreeLayout.prototype.firstWalk = function(vNode){
 FamilyTreeLayout.prototype.secondWalk = function(vNode, m){
 	vNode.drawData.coordX = vNode.drawData.prelim + m;
 	vNode.drawData.coordY = vNode.depth * (this.height + this.horizontalSeparation);
-	
+	if(vNode.drawData.expanded){
 		for (var i = 0; i < vNode.children.length; i++) {
 				this.secondWalk(vNode.children[i], m + vNode.drawData.modifier);
 		};
-	
+	}
 }
 
  FamilyTreeLayout.prototype.apportion = function(vNode, defaultAncestor){
@@ -120,14 +121,14 @@ FamilyTreeLayout.prototype.ancestor = function(vimNode, vNode, defaultAncestor){
 }
 
 FamilyTreeLayout.prototype.nextLeft = function(vNode){
-	if(!vNode.isLeaf()){
+	if(!vNode.isLeaf() && vNode.drawData.expanded){
 		return vNode.leftMostChild(); // the leftmost child
 	}
 	else return vNode.drawData.thread;
 }
 
 FamilyTreeLayout.prototype.nextRight = function(vNode){
-	if(!vNode.isLeaf()){
+	if(!vNode.isLeaf() && vNode.drawData.expanded){
 		return vNode.rightMostChild(); // the leftmost child
 	}
 	else return vNode.drawData.thread;
@@ -135,5 +136,17 @@ FamilyTreeLayout.prototype.nextRight = function(vNode){
 
 FamilyTreeLayout.prototype.getIndex = function(vNode){
 	return vNode.id.split("/").pop();
+}
+
+FamilyTreeLayout.prototype.initDrawData = function(root){
+	root.traverseDown(function(node){
+		node.drawData.prelim = 0;
+		node.drawData.change = 0;
+		node.drawData.modifier = 0;
+		node.drawData.thread = 0;
+		node.drawData.shift = 0;
+		node.drawData.coordX = 0;
+		node.drawData.coordY = 0;
+	});
 }
 

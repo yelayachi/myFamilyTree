@@ -44,18 +44,33 @@ var familyTreeModule = (function () {
 				}
 			});
 		}
-
-		//stage.draw();
-		stage.remove();
-		//stage.clear();
-		drawTree();
 		
+		evt.shape.parent.draw();
+		layout.positionTree(tree);
+		if (tree.drawData.expanded) {
+			(function walkDown(subNode) {
+				var i,
+				newContext;
+				for (i = 0; i < subNode.children.length; i++) {
+					newContext = subNode.children[i];
+					stage.get('#'+newContext.id)[0].transitionTo({
+						x: newContext.drawData.coordX,
+						y: newContext.drawData.coordY,
+						duration: 0.3
+					  });
+					if (!newContext.drawData.expanded)
+						continue;
+					walkDown(newContext);
+				}
+			})(tree);
+		}
+
 	}
 
 	function drawIdentityAndLinksLayer(node) {
 		if (node.isRoot()) {
 			var layer = new Kinetic.Layer();
-			layer.add(drawIdentityGroup(node, layout));
+			layer.add(drawIdentityGroup(node));
 			stage.add(layer);
 		} else {
 			var nodeAndLinkLayer = stage.get('#sonsOf:' + node.parent.id)[0];
@@ -65,11 +80,11 @@ var familyTreeModule = (function () {
 					});
 			}
 
-			var linkGroup = drawLinkGroup(node, layout);
+			/*var linkGroup = drawLinkGroup(node);
 			if (!_.isUndefined(linkGroup)) {
 				nodeAndLinkLayer.add(linkGroup);
-			}
-			nodeAndLinkLayer.add(drawIdentityGroup(node, layout));
+			}*/
+			nodeAndLinkLayer.add(drawIdentityGroup(node));
 			stage.add(nodeAndLinkLayer);
 		}
 	}
@@ -237,9 +252,20 @@ var familyTreeModule = (function () {
 
 	function drawTree() {
 		layout.positionTree(tree);
-		tree.traverseDown(function (node) {
-			drawIdentityAndLinksLayer(node);
-		});
+		drawIdentityAndLinksLayer(tree);
+		if (tree.drawData.expanded) {
+			(function walkDown(subNode) {
+				var i,
+				newContext;
+				for (i = 0; i < subNode.children.length; i++) {
+					newContext = subNode.children[i];
+					drawIdentityAndLinksLayer(newContext);
+					if (!newContext.drawData.expanded)
+						continue;
+					walkDown(newContext);
+				}
+			})(tree);
+		}
 
 		stage.setOffset( - (stage.getWidth() - layout.width * stage.getScale().x) / (2 * stage.getScale().x), 0);
 		stage.draw();
