@@ -24,6 +24,24 @@ var familyTreeModule = (function () {
 
 		if (node.drawData.expanded) {
 			childButton.setImage(imageCollapse);
+			layout.positionTree(tree);
+			if (tree.drawData.expanded) {
+				(function walkDown(subNode) {
+					var i,
+					newContext;
+					for (i = 0; i < subNode.children.length; i++) {
+						newContext = subNode.children[i];
+						stage.get('#' + newContext.id)[0].transitionTo({
+							x : newContext.drawData.coordX,
+							y : newContext.drawData.coordY,
+							duration : 0.3
+						});
+						if (!newContext.drawData.expanded)
+							continue;
+						walkDown(newContext);
+					}
+				})(tree);
+			}
 			(function walkDown(subNode) {
 				var i,
 				newContext;
@@ -35,6 +53,11 @@ var familyTreeModule = (function () {
 					walkDown(newContext);
 				}
 			})(node);
+
+			evt.shape.parent.draw();
+			
+			
+
 		} else {
 			childButton.setImage(imageExpand);
 			node.traverseDown(function (subNode) {
@@ -43,26 +66,25 @@ var familyTreeModule = (function () {
 					layerToRemove.remove();
 				}
 			});
-		}
-		
-		evt.shape.parent.draw();
-		layout.positionTree(tree);
-		if (tree.drawData.expanded) {
-			(function walkDown(subNode) {
-				var i,
-				newContext;
-				for (i = 0; i < subNode.children.length; i++) {
-					newContext = subNode.children[i];
-					stage.get('#'+newContext.id)[0].transitionTo({
-						x: newContext.drawData.coordX,
-						y: newContext.drawData.coordY,
-						duration: 0.3
-					  });
-					if (!newContext.drawData.expanded)
-						continue;
-					walkDown(newContext);
-				}
-			})(tree);
+			evt.shape.parent.draw();
+			layout.positionTree(tree);
+			if (tree.drawData.expanded) {
+				(function walkDown(subNode) {
+					var i,
+					newContext;
+					for (i = 0; i < subNode.children.length; i++) {
+						newContext = subNode.children[i];
+						stage.get('#' + newContext.id)[0].transitionTo({
+							x : newContext.drawData.coordX,
+							y : newContext.drawData.coordY,
+							duration : 0.3
+						});
+						if (!newContext.drawData.expanded)
+							continue;
+						walkDown(newContext);
+					}
+				})(tree);
+			}
 		}
 
 	}
@@ -78,14 +100,17 @@ var familyTreeModule = (function () {
 				nodeAndLinkLayer = new Kinetic.Layer({
 						id : 'sonsOf:' + node.parent.id
 					});
+				nodeAndLinkLayer.add(drawIdentityGroup(node));
+				stage.add(nodeAndLinkLayer);
+			} else {
+				nodeAndLinkLayer.add(drawIdentityGroup(node));
 			}
 
 			/*var linkGroup = drawLinkGroup(node);
 			if (!_.isUndefined(linkGroup)) {
-				nodeAndLinkLayer.add(linkGroup);
+			nodeAndLinkLayer.add(linkGroup);
 			}*/
-			nodeAndLinkLayer.add(drawIdentityGroup(node));
-			stage.add(nodeAndLinkLayer);
+
 		}
 	}
 
