@@ -25,6 +25,21 @@ var familyTreeModule = (function () {
 		if (node.drawData.expanded) {
 			childButton.setImage(imageCollapse);
 			layout.positionTree(tree);
+			
+			(function walkDown(subNode) {
+				var i,
+				newContext;
+				for (i = 0; i < subNode.children.length; i++) {
+					newContext = subNode.children[i];
+					var layerDrawn = drawIdentityAndLinksLayer(newContext);
+					if (!newContext.drawData.expanded)
+						continue;
+					walkDown(newContext);
+				}
+			})(node);
+
+			evt.shape.parent.draw();
+			
 			if (tree.drawData.expanded) {
 				(function walkDown(subNode) {
 					var i,
@@ -42,19 +57,6 @@ var familyTreeModule = (function () {
 					}
 				})(tree);
 			}
-			(function walkDown(subNode) {
-				var i,
-				newContext;
-				for (i = 0; i < subNode.children.length; i++) {
-					newContext = subNode.children[i];
-					drawIdentityAndLinksLayer(newContext);
-					if (!newContext.drawData.expanded)
-						continue;
-					walkDown(newContext);
-				}
-			})(node);
-
-			evt.shape.parent.draw();
 			
 			
 
@@ -110,13 +112,14 @@ var familyTreeModule = (function () {
 			if (!_.isUndefined(linkGroup)) {
 			nodeAndLinkLayer.add(linkGroup);
 			}*/
-
+		return nodeAndLinkLayer;
 		}
 	}
 
 	function drawIdentityGroup(node) {
 		var identityGroup = new Kinetic.Group({
 				id : node.id,
+				name:'identity',
 				draggable : false,
 				x : node.drawData.coordX,
 				y : node.drawData.coordY
