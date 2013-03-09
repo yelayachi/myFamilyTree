@@ -145,6 +145,8 @@ FamilyTreeLayout.prototype.initDrawData = function(root){
 		node.drawData.modifier = 0;
 		node.drawData.thread = 0;
 		node.drawData.shift = 0;
+		node.drawData.oldCoordX = node.drawData.coordX;
+		node.drawData.oldCoordY = node.drawData.coordY;
 		node.drawData.coordX = 0;
 		node.drawData.coordY = 0;
 	});

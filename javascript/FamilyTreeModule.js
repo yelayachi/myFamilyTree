@@ -25,23 +25,10 @@ var familyTreeModule = (function () {
 		if (node.drawData.expanded) {
 			childButton.setImage(imageCollapse);
 			layout.positionTree(tree);
-			
-			(function walkDown(subNode) {
-				var i,
-				newContext;
-				for (i = 0; i < subNode.children.length; i++) {
-					newContext = subNode.children[i];
-					var layerDrawn = drawIdentityAndLinksLayer(newContext);
-					if (!newContext.drawData.expanded)
-						continue;
-					walkDown(newContext);
-				}
-			})(node);
 
-			evt.shape.parent.draw();
-			
-			if (tree.drawData.expanded) {
-				(function walkDown(subNode) {
+			// On modifie le positionnement des noeuds apparents.
+			if(!node.isRoot()){
+			(function walkDown(subNode) {
 					var i,
 					newContext;
 					for (i = 0; i < subNode.children.length; i++) {
@@ -51,12 +38,52 @@ var familyTreeModule = (function () {
 							y : newContext.drawData.coordY,
 							duration : 0.3
 						});
-						if (!newContext.drawData.expanded)
+						if (!newContext.drawData.expanded || newContext.id === node.id)
 							continue;
 						walkDown(newContext);
 					}
 				})(tree);
 			}
+
+			// on affiche avec une animation les noeuds à apparaitre
+			(function walkDown(subNode) {
+				var i,
+				newContext;
+				for (i = 0; i < subNode.children.length; i++) {
+					newContext = subNode.children[i];
+
+					var group = drawIdentityGroup(newContext);
+					group.setX(node.drawData.oldCoordX+layout.width/2);
+					group.setY(node.drawData.oldCoordY+layout.height);
+					group.setScale(0.1, 0.1);
+
+
+
+					var nodeAndLinkLayer = stage.get('#sonsOf:' + subNode.id)[0];
+			if (_.isUndefined(nodeAndLinkLayer)) {
+				nodeAndLinkLayer = new Kinetic.Layer({
+						id : 'sonsOf:' + subNode.id
+					});
+				nodeAndLinkLayer.add(group);
+				stage.add(nodeAndLinkLayer);
+			} else {
+				nodeAndLinkLayer.add(group);
+			}
+					
+					group.transitionTo({
+							x : newContext.drawData.coordX,
+							y : newContext.drawData.coordY,
+							duration : 0.3,
+							scale: {x: 1, y:1}
+						});
+
+					if (!newContext.drawData.expanded)
+						continue;
+					walkDown(newContext);
+				}
+			})(node);
+
+			evt.shape.parent.draw();
 			
 			
 
