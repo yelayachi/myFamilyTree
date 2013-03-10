@@ -69,7 +69,7 @@ var familyTreeModule = (function () {
 			} else {
 				nodeAndLinkLayer.add(group);
 			}
-					
+
 					group.transitionTo({
 							x : newContext.drawData.coordX,
 							y : newContext.drawData.coordY,
@@ -82,6 +82,7 @@ var familyTreeModule = (function () {
 					walkDown(newContext);
 				}
 			})(node);
+
 
 			evt.shape.parent.draw();
 			
@@ -135,10 +136,10 @@ var familyTreeModule = (function () {
 				nodeAndLinkLayer.add(drawIdentityGroup(node));
 			}
 
-			/*var linkGroup = drawLinkGroup(node);
+			var linkGroup = drawLinkGroup(node.parent);
 			if (!_.isUndefined(linkGroup)) {
 			nodeAndLinkLayer.add(linkGroup);
-			}*/
+			}
 		return nodeAndLinkLayer;
 		}
 	}
@@ -218,18 +219,16 @@ var familyTreeModule = (function () {
 	}
 
 	function drawLinkGroup(node) {
-		if (!node.isRoot() && node.getIndexInCurrentLevel() < 1) {
-			var parent = node.parent;
 			var linkGroup = new Kinetic.Group({
 					name : "link"
 				});
 
 			var linkSiblings = new Kinetic.Line({
 					points : [
-						parent.leftMostChild().drawData.coordX + (layout.width / 2),
-						parent.leftMostChild().drawData.coordY - (layout.horizontalSeparation / 2),
-						parent.rightMostChild().drawData.coordX + (layout.width / 2),
-						parent.rightMostChild().drawData.coordY - (layout.horizontalSeparation / 2)],
+						node.leftMostChild().drawData.coordX + (layout.width / 2),
+						node.leftMostChild().drawData.coordY - (layout.horizontalSeparation / 2),
+						node.rightMostChild().drawData.coordX + (layout.width / 2),
+						node.rightMostChild().drawData.coordY - (layout.horizontalSeparation / 2)],
 					stroke : 'black',
 					strokeWidth : 5,
 					lineCap : 'round',
@@ -238,9 +237,10 @@ var familyTreeModule = (function () {
 
 			var linkDown = new Kinetic.Line({
 					points : [
-						parent.drawData.coordX + (layout.width / 2),
-						parent.drawData.coordY + layout.height,
-						parent.drawData.coordX + (layout.width / 2), parent.drawData.coordY + layout.height + (layout.horizontalSeparation / 2)],
+						node.drawData.coordX + (layout.width / 2),
+						node.drawData.coordY + layout.height,
+						node.drawData.coordX + (layout.width / 2), 
+						node.drawData.coordY + layout.height + (layout.horizontalSeparation / 2)],
 					stroke : 'black',
 					strokeWidth : 5,
 					lineCap : 'round',
@@ -250,7 +250,7 @@ var familyTreeModule = (function () {
 			linkGroup.add(linkDown);
 			linkGroup.add(linkSiblings);
 
-			parent.children.forEach(function (subNode) {
+			node.children.forEach(function (subNode) {
 				var linkUp = new Kinetic.Line({
 						points : [subNode.drawData.coordX + (layout.width / 2), subNode.drawData.coordY,
 							subNode.drawData.coordX + (layout.width / 2), subNode.drawData.coordY - (layout.horizontalSeparation / 2)],
@@ -262,8 +262,6 @@ var familyTreeModule = (function () {
 				linkGroup.add(linkUp);
 			});
 			return linkGroup;
-		}
-
 	}
 
 	function bindUIActions() {
