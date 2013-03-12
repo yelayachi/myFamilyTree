@@ -27,8 +27,8 @@ var familyTreeModule = (function () {
 			layout.positionTree(tree);
 
 			// On modifie le positionnement des noeuds apparents.
-			if(!node.isRoot()){
-			(function walkDown(subNode) {
+			if (!node.isRoot()) {
+				(function walkDown(subNode) {
 					var i,
 					newContext;
 					for (i = 0; i < subNode.children.length; i++) {
@@ -53,29 +53,30 @@ var familyTreeModule = (function () {
 					newContext = subNode.children[i];
 
 					var group = drawIdentityGroup(newContext);
-					group.setX(node.drawData.oldCoordX+layout.width/2);
-					group.setY(node.drawData.oldCoordY+layout.height);
+					group.setX(node.drawData.oldCoordX + layout.width / 2);
+					group.setY(node.drawData.oldCoordY + layout.height);
 					group.setScale(0.1, 0.1);
 
-
-
 					var nodeAndLinkLayer = stage.get('#sonsOf:' + subNode.id)[0];
-			if (_.isUndefined(nodeAndLinkLayer)) {
-				nodeAndLinkLayer = new Kinetic.Layer({
-						id : 'sonsOf:' + subNode.id
-					});
-				nodeAndLinkLayer.add(group);
-				stage.add(nodeAndLinkLayer);
-			} else {
-				nodeAndLinkLayer.add(group);
-			}
+					if (_.isUndefined(nodeAndLinkLayer)) {
+						nodeAndLinkLayer = new Kinetic.Layer({
+								id : 'sonsOf:' + subNode.id
+							});
+						nodeAndLinkLayer.add(group);
+						stage.add(nodeAndLinkLayer);
+					} else {
+						nodeAndLinkLayer.add(group);
+					}
 
 					group.transitionTo({
-							x : newContext.drawData.coordX,
-							y : newContext.drawData.coordY,
-							duration : 0.3,
-							scale: {x: 1, y:1}
-						});
+						x : newContext.drawData.coordX,
+						y : newContext.drawData.coordY,
+						duration : 0.3,
+						scale : {
+							x : 1,
+							y : 1
+						}
+					});
 
 					if (!newContext.drawData.expanded)
 						continue;
@@ -83,10 +84,7 @@ var familyTreeModule = (function () {
 				}
 			})(node);
 
-
 			evt.shape.parent.draw();
-			
-			
 
 		} else {
 			childButton.setImage(imageExpand);
@@ -126,28 +124,49 @@ var familyTreeModule = (function () {
 			stage.add(layer);
 		} else {
 			var nodeAndLinkLayer = stage.get('#sonsOf:' + node.parent.id)[0];
+			var drawnNode;
 			if (_.isUndefined(nodeAndLinkLayer)) {
 				nodeAndLinkLayer = new Kinetic.Layer({
 						id : 'sonsOf:' + node.parent.id
 					});
-				nodeAndLinkLayer.add(drawIdentityGroup(node));
+				
+					drawnNode = drawIdentityGroup(node);
+				nodeAndLinkLayer.add(drawnNode);
 				stage.add(nodeAndLinkLayer);
 			} else {
-				nodeAndLinkLayer.add(drawIdentityGroup(node));
+				drawnNode = drawIdentityGroup(node);
+				nodeAndLinkLayer.add(drawnNode);
 			}
-
-			var linkGroup = drawLinkGroup(node.parent);
-			if (!_.isUndefined(linkGroup)) {
-			nodeAndLinkLayer.add(linkGroup);
-			}
-		return nodeAndLinkLayer;
+			
+			nodeAndLinkLayer.beforeDraw(function(){
+				drawLinks(node.parent);
+			});
+			return nodeAndLinkLayer;
 		}
+	}
+	
+	function drawLinks(node){
+		var graphNodeLeftMost = stage.get('#' + node.leftMostChild().id)[0];
+		var graphNodeRightMost = stage.get('#' + node.rightMostChild().id)[0];
+		var canvas = graphNodeLeftMost.getLayer().getCanvas();
+		canvas.clear();
+        var context = canvas.getContext();
+		context.beginPath();
+		context.moveTo(graphNodeLeftMost.attrs.x + (layout.width / 2), 
+					graphNodeLeftMost.attrs.y - (layout.horizontalSeparation / 2));
+		context.lineTo(graphNodeRightMost.attrs.x + (layout.width / 2),
+					graphNodeRightMost.attrs.y - (layout.horizontalSeparation / 2));			
+		context.strokeStyle = 'black';
+        context.lineWidth = 5;
+        context.stroke();
+		
+		
 	}
 
 	function drawIdentityGroup(node) {
 		var identityGroup = new Kinetic.Group({
 				id : node.id,
-				name:'identity',
+				name : 'identity',
 				draggable : false,
 				x : node.drawData.coordX,
 				y : node.drawData.coordY
@@ -219,49 +238,36 @@ var familyTreeModule = (function () {
 	}
 
 	function drawLinkGroup(node) {
-			var linkGroup = new Kinetic.Group({
-					name : "link"
-				});
-
-			var linkSiblings = new Kinetic.Line({
-					points : [
-						node.leftMostChild().drawData.coordX + (layout.width / 2),
-						node.leftMostChild().drawData.coordY - (layout.horizontalSeparation / 2),
-						node.rightMostChild().drawData.coordX + (layout.width / 2),
-						node.rightMostChild().drawData.coordY - (layout.horizontalSeparation / 2)],
-					stroke : 'black',
-					strokeWidth : 5,
-					lineCap : 'round',
-					lineJoin : 'round'
-				});
-
-			var linkDown = new Kinetic.Line({
-					points : [
-						node.drawData.coordX + (layout.width / 2),
-						node.drawData.coordY + layout.height,
-						node.drawData.coordX + (layout.width / 2), 
-						node.drawData.coordY + layout.height + (layout.horizontalSeparation / 2)],
-					stroke : 'black',
-					strokeWidth : 5,
-					lineCap : 'round',
-					lineJoin : 'round'
-				});
-
-			linkGroup.add(linkDown);
-			linkGroup.add(linkSiblings);
-
-			node.children.forEach(function (subNode) {
-				var linkUp = new Kinetic.Line({
-						points : [subNode.drawData.coordX + (layout.width / 2), subNode.drawData.coordY,
-							subNode.drawData.coordX + (layout.width / 2), subNode.drawData.coordY - (layout.horizontalSeparation / 2)],
-						stroke : 'black',
-						strokeWidth : 5,
-						lineCap : 'round',
-						lineJoin : 'round'
-					});
-				linkGroup.add(linkUp);
+		var linkGroup = new Kinetic.Group({
+				name : "link"
 			});
-			return linkGroup;
+			
+		var linkDown = new Kinetic.Line({
+				points : [
+					node.drawData.coordX + (layout.width / 2),
+					node.drawData.coordY + layout.height,
+					node.drawData.coordX + (layout.width / 2),
+					node.drawData.coordY + layout.height + (layout.horizontalSeparation / 2)],
+				stroke : 'black',
+				strokeWidth : 5,
+				lineCap : 'round',
+				lineJoin : 'round'
+			});
+
+		linkGroup.add(linkDown);
+
+		node.children.forEach(function (subNode) {
+			var linkUp = new Kinetic.Line({
+					points : [subNode.drawData.coordX + (layout.width / 2), subNode.drawData.coordY,
+						subNode.drawData.coordX + (layout.width / 2), subNode.drawData.coordY - (layout.horizontalSeparation / 2)],
+					stroke : 'black',
+					strokeWidth : 5,
+					lineCap : 'round',
+					lineJoin : 'round'
+				});
+			linkGroup.add(linkUp);
+		});
+		return linkGroup;
 	}
 
 	function bindUIActions() {
@@ -318,6 +324,9 @@ var familyTreeModule = (function () {
 					walkDown(newContext);
 				}
 			})(tree);
+			
+			
+			
 		}
 
 		stage.setOffset( - (stage.getWidth() - layout.width * stage.getScale().x) / (2 * stage.getScale().x), 0);
