@@ -46,6 +46,7 @@ var familyTreeModule = (function () {
 			}
 
 			// on affiche avec une animation les noeuds à apparaitre
+			var createdLayers  = new Array();
 			(function walkDown(subNode) {
 				var i,
 				newContext;
@@ -57,19 +58,17 @@ var familyTreeModule = (function () {
 					group.setY(node.drawData.oldCoordY+layout.height);
 					group.setScale(0.1, 0.1);
 
-
-
 					var nodeAndLinkLayer = stage.get('#sonsOf:' + subNode.id)[0];
 			if (_.isUndefined(nodeAndLinkLayer)) {
 				nodeAndLinkLayer = new Kinetic.Layer({
 						id : 'sonsOf:' + subNode.id
 					});
+				createdLayers.push(nodeAndLinkLayer);
 				nodeAndLinkLayer.add(group);
 				stage.add(nodeAndLinkLayer);
 			} else {
 				nodeAndLinkLayer.add(group);
 			}
-
 					group.transitionTo({
 							x : newContext.drawData.coordX,
 							y : newContext.drawData.coordY,
@@ -82,6 +81,16 @@ var familyTreeModule = (function () {
 					walkDown(newContext);
 				}
 			})(node);
+
+			// on redessine les liens
+		createdLayers.forEach(function(layer){
+			var idParent = layer.attrs.id.split(':').pop();
+			var parent = stage.get('#'+idParent)[0];
+			var children = _.filter(layer.children, function(child){
+				return child.attrs.name === 'identity';
+			});
+			layer.add(drawLinkShape(parent, children));
+		})
 
 
 			evt.shape.parent.draw();
@@ -101,14 +110,17 @@ var familyTreeModule = (function () {
 			if (tree.drawData.expanded) {
 				(function walkDown(subNode) {
 					var i,
-					newContext;
+					newContext,
+					identity;
 					for (i = 0; i < subNode.children.length; i++) {
 						newContext = subNode.children[i];
-						stage.get('#' + newContext.id)[0].transitionTo({
+						identity = stage.get('#' + newContext.id)[0];
+						identity.transitionTo({
 							x : newContext.drawData.coordX,
 							y : newContext.drawData.coordY,
 							duration : 0.3
 						});
+						
 						if (!newContext.drawData.expanded)
 							continue;
 						walkDown(newContext);
@@ -119,28 +131,23 @@ var familyTreeModule = (function () {
 
 	}
 
-	function drawIdentityAndLinksLayer(node) {
+	function drawSiblingsInTheSameLayer(node) {
 		if (node.isRoot()) {
 			var layer = new Kinetic.Layer();
 			layer.add(drawIdentityGroup(node));
 			stage.add(layer);
 		} else {
-			var nodeAndLinkLayer = stage.get('#sonsOf:' + node.parent.id)[0];
-			if (_.isUndefined(nodeAndLinkLayer)) {
-				nodeAndLinkLayer = new Kinetic.Layer({
-						id : 'sonsOf:' + node.parent.id
+			var nodesLayer = stage.get('#sonsOf:' + node.parent.id)[0];
+			if (_.isUndefined(nodesLayer)) {
+				nodesLayer = new Kinetic.Layer({
+						id : 'sonsOf:' + node.parent.id,
+						name : 'brothers'
 					});
-				nodeAndLinkLayer.add(drawIdentityGroup(node));
-				stage.add(nodeAndLinkLayer);
+				nodesLayer.add(drawIdentityGroup(node));
+				stage.add(nodesLayer);
 			} else {
-				nodeAndLinkLayer.add(drawIdentityGroup(node));
+				nodesLayer.add(drawIdentityGroup(node));
 			}
-
-			var linkGroup = drawLinkGroup(node.parent);
-			if (!_.isUndefined(linkGroup)) {
-			nodeAndLinkLayer.add(linkGroup);
-			}
-		return nodeAndLinkLayer;
 		}
 	}
 
@@ -194,7 +201,7 @@ var familyTreeModule = (function () {
 				x : (layout.width - 32) / 2,
 				y : layout.height - 32,
 				width : 32,
-				height : 32,
+				height : 32
 			});
 
 		if (node.drawData.expanded) {
@@ -218,50 +225,83 @@ var familyTreeModule = (function () {
 		return identityGroup;
 	}
 
-	function drawLinkGroup(node) {
-			var linkGroup = new Kinetic.Group({
-					name : "link"
+	function drawLinkShape(parent, children) {
+		var link = new Kinetic.Shape({
+			name: 'link',
+	        drawFunc: function(canvas) {
+	          var context = canvas.getContext();
+	          context.beginPath();
+
+	          // link the siblings
+	          context.moveTo(children[0].attrs.x + (layout.width / 2), 
+	          		children[0].attrs.y - (layout.horizontalSeparation / 2));
+	          context.lineTo(children[children.length - 1].attrs.x + (layout.width / 2), 
+	          		children[children.length - 1].attrs.y - (layout.horizontalSeparation / 2));
+
+	          // link the parent
+	          context.moveTo(parent.attrs.x + (layout.width / 2), 
+	          		parent.attrs.y + layout.height);
+      		  context.lineTo(parent.attrs.x + (layout.width / 2),
+      		   		parent.attrs.y + layout.height + (layout.horizontalSeparation / 2));
+
+      		  // link the children
+      		  children.forEach(function (subNode) {
+					context.moveTo(subNode.attrs.x + (layout.width / 2), subNode.attrs.y);
+      		  		context.lineTo(subNode.attrs.x + (layout.width / 2), subNode.attrs.y - (layout.horizontalSeparation / 2));
 				});
+      		  
+      		  context.lineWidth = 5;
+      		context.strokeStyle = 'black';
+      		context.lineJoin = 'round';
+      		context.lineCap = 'round';
+	          context.stroke();
+	          
+	        },
+	        stroke: 'red',
+	        strokeWidth: 15,
+	        lineCap : 'round',
+			lineJoin : 'round'
+	      });
+			
+			return link;
+	}
 
-			var linkSiblings = new Kinetic.Line({
-					points : [
-						node.leftMostChild().drawData.coordX + (layout.width / 2),
-						node.leftMostChild().drawData.coordY - (layout.horizontalSeparation / 2),
-						node.rightMostChild().drawData.coordX + (layout.width / 2),
-						node.rightMostChild().drawData.coordY - (layout.horizontalSeparation / 2)],
-					stroke : 'black',
-					strokeWidth : 5,
-					lineCap : 'round',
-					lineJoin : 'round'
-				});
+	function drawIdentities(tree){
+		drawSiblingsInTheSameLayer(tree);
+		if (tree.drawData.expanded) {
+			(function walkDown(subNode) {
+				var i,
+				newContext;
+				for (i = 0; i < subNode.children.length; i++) {
+					newContext = subNode.children[i];
+					drawSiblingsInTheSameLayer(newContext);
+					if (!newContext.drawData.expanded)
+						continue;
+					walkDown(newContext);
+				}
+			})(tree);
+		}
+	}
 
-			var linkDown = new Kinetic.Line({
-					points : [
-						node.drawData.coordX + (layout.width / 2),
-						node.drawData.coordY + layout.height,
-						node.drawData.coordX + (layout.width / 2), 
-						node.drawData.coordY + layout.height + (layout.horizontalSeparation / 2)],
-					stroke : 'black',
-					strokeWidth : 5,
-					lineCap : 'round',
-					lineJoin : 'round'
-				});
-
-			linkGroup.add(linkDown);
-			linkGroup.add(linkSiblings);
-
-			node.children.forEach(function (subNode) {
-				var linkUp = new Kinetic.Line({
-						points : [subNode.drawData.coordX + (layout.width / 2), subNode.drawData.coordY,
-							subNode.drawData.coordX + (layout.width / 2), subNode.drawData.coordY - (layout.horizontalSeparation / 2)],
-						stroke : 'black',
-						strokeWidth : 5,
-						lineCap : 'round',
-						lineJoin : 'round'
-					});
-				linkGroup.add(linkUp);
+	function drawLinks(){
+		var brothersLayer = stage.get('.brothers');
+		brothersLayer.forEach(function(layer){
+			var idParent = layer.attrs.id.split(':').pop();
+			var parent = stage.get('#'+idParent)[0];
+			var children = _.filter(layer.children, function(child){
+				return child.attrs.name === 'identity';
 			});
-			return linkGroup;
+			layer.add(drawLinkShape(parent, children));
+		})
+	}
+
+	function drawTree() {
+		layout.positionTree(tree);
+		drawIdentities(tree);
+		drawLinks();
+
+		stage.setOffset( - (stage.getWidth() - layout.width * stage.getScale().x) / (2 * stage.getScale().x), 0);
+		stage.draw();
 	}
 
 	function bindUIActions() {
@@ -301,27 +341,6 @@ var familyTreeModule = (function () {
 			stage.draw();
 			e.preventDefault();
 		}, false);
-	}
-
-	function drawTree() {
-		layout.positionTree(tree);
-		drawIdentityAndLinksLayer(tree);
-		if (tree.drawData.expanded) {
-			(function walkDown(subNode) {
-				var i,
-				newContext;
-				for (i = 0; i < subNode.children.length; i++) {
-					newContext = subNode.children[i];
-					drawIdentityAndLinksLayer(newContext);
-					if (!newContext.drawData.expanded)
-						continue;
-					walkDown(newContext);
-				}
-			})(tree);
-		}
-
-		stage.setOffset( - (stage.getWidth() - layout.width * stage.getScale().x) / (2 * stage.getScale().x), 0);
-		stage.draw();
 	}
 
 	/*
