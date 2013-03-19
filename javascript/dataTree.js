@@ -44,7 +44,12 @@ var treeJson = {
             name: "0/1",
 			birthDate:"01/01/1986",
 			photoUrl:"images/people.png",
-			partners:[],
+			partners:[{
+	            	id: "partners",
+		            name: "patner 1",
+					birthDate:"01/01/1986",
+					photoUrl:"images/people.png"
+	            	}],
             children: []
         },
 		{	id: "0/2",

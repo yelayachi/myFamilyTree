@@ -353,7 +353,7 @@ var familyTreeModule = (function () {
 				width : $('#' + containerName).width(),
 				height : $('#' + containerName).height(),
 				draggable : true,
-				scale : 0.3
+				scale : 0.5
 			});
 		layout = new FamilyTreeLayout(settings);
 		bindUIActions();
