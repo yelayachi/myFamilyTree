@@ -1,8 +1,20 @@
 ﻿'use strict';
 
-function ShapeFactory() {}
+function ShapeFactory() {
+	ShapeFactory.prototype.eventOnChildButtonClick = null;
+	this.imageExpand = new Image();
+	this.imageExpand.src = 'images/toggle-expand.png';
+	this.imageCollapse = new Image();
+	this.imageCollapse.src = 'images/toggle-collapse.png';
+}
 
-ShapeFactory.prototype.createIdentityCard = function (options) {
+ShapeFactory.prototype.bindEvt = function (componentName, evt){
+	if(componentName === 'childButton'){
+		ShapeFactory.prototype.eventOnChildButtonClick = evt;
+	}
+}
+
+ShapeFactory.prototype.createIdentityCard = function (node, layout) {
 	var identityGroup = new Kinetic.Group({
 			id : node.id,
 			name : 'identity',
@@ -11,8 +23,8 @@ ShapeFactory.prototype.createIdentityCard = function (options) {
 			y : node.drawData.coordY
 		});
 	var card = new Kinetic.Rect({
-			width : node.drawData..width,
-			height : node.drawData..height,
+			width : layout.width,
+			height : layout.height,
 			fill : 'green',
 			strokeWidth : 3
 		});
@@ -56,13 +68,13 @@ ShapeFactory.prototype.createIdentityCard = function (options) {
 		});
 
 	if (node.drawData.expanded) {
-		childButton.setImage(imageCollapse);
+		childButton.setImage(this.imageCollapse);
 	} else {
-		childButton.setImage(imageExpand);
+		childButton.setImage(this.imageExpand);
 	}
 
 	childButton.on('click', function (evt) {
-		extendCollapseChildEvt(evt, node, this);
+		ShapeFactory.prototype.eventOnChildButtonClick(evt, node, childButton);
 	});
 
 	identityGroup.add(card);
@@ -76,7 +88,7 @@ ShapeFactory.prototype.createIdentityCard = function (options) {
 	return identityGroup;
 }
 
-ShapeFactory.prototype.createLinksBetweenIdentityCards = function (options) {
+ShapeFactory.prototype.createLinksBetweenIdentityCards = function (parent, children, layout) {
 	var link = new Kinetic.Shape({
 			name : 'link',
 			drawFunc : function (canvas) {
