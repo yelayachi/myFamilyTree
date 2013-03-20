@@ -25,7 +25,8 @@ ShapeFactory.prototype.createIdentityCard = function (node, layout) {
 	var card = new Kinetic.Rect({
 			width : layout.width,
 			height : layout.height,
-			fill : 'green',
+			fill : 'C6E6F4',
+			stroke : 'A8D9EE',
 			strokeWidth : 3
 		});
 
@@ -119,12 +120,18 @@ ShapeFactory.prototype.createLinksBetweenIdentityCards = function (parent, child
 				context.lineCap = 'round';
 				context.stroke();
 
-			},
-			stroke : 'red',
-			strokeWidth : 15,
-			lineCap : 'round',
-			lineJoin : 'round'
+			}
 		});
 
 	return link;
+}
+
+ShapeFactory.prototype.createSelectionShape = function (parent, children, layout) {
+	var selectionShape = new Kinetic.Rect({
+			width : layout.width,
+			height : layout.height,
+			fill : 'C6E6F4',
+			stroke : 'A8D9EE',
+			strokeWidth : 3
+		});
 }
