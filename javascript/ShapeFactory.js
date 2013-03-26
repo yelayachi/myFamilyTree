@@ -1,20 +1,46 @@
 ﻿'use strict';
 
-function ShapeFactory() {
-	ShapeFactory.prototype.eventOnChildButtonClick = null;
-	this.imageExpand = new Image();
-	this.imageExpand.src = 'images/toggle-expand.png';
-	this.imageCollapse = new Image();
-	this.imageCollapse.src = 'images/toggle-collapse.png';
-}
+var shapeFactory = (function () {
+	var publicFct = {};
+	var eventOnChildButtonClick, imageExpand, imageCollapse, imageArrowDown, imageArrowUp, imageArrowRight, imageDelete, imageEdit;
+	var layout, selectionLayer;
 
-ShapeFactory.prototype.bindEvt = function (componentName, evt){
-	if(componentName === 'childButton'){
-		ShapeFactory.prototype.eventOnChildButtonClick = evt;
+    publicFct.init = function (settings) {
+    	layout = settings.layout;
+
+    	imageExpand = new Image();
+		imageExpand.src = 'images/toggle-expand.png';
+		imageCollapse = new Image();
+		imageCollapse.src = 'images/toggle-collapse.png';
+		imageArrowDown = new Image();
+		imageArrowDown.src = 'images/arrow_down.png';
+		imageArrowUp = new Image();
+		imageArrowUp.src = 'images/arrow_up.png';
+		imageArrowRight = new Image();
+		imageArrowRight.src = 'images/arrow_right.png';
+		imageDelete = new Image();
+		imageDelete.src = 'images/delete.png';
+		imageEdit = new Image();
+		imageEdit.src = 'images/edit.png';
+
+		selectionLayer = shapeFactory.createSelection();
+    };
+
+    /*
+	 *	Private function
+	 */
+
+
+	 /*
+	 *	Public function
+	 */
+	 publicFct.bindEvt = function (componentName, evt){
+		if(componentName === 'childButton'){
+			eventOnChildButtonClick = evt;
+		}
 	}
-}
 
-ShapeFactory.prototype.createIdentityCard = function (node, layout) {
+publicFct.createIdentityCard = function (node) {
 	var identityGroup = new Kinetic.Group({
 			id : node.id,
 			name : 'identity',
@@ -68,15 +94,31 @@ ShapeFactory.prototype.createIdentityCard = function (node, layout) {
 			height : 32
 		});
 
-	if (node.drawData.expanded) {
-		childButton.setImage(this.imageCollapse);
-	} else {
-		childButton.setImage(this.imageExpand);
-	}
+	var removeButton = new Kinetic.Image({
+			name : "removeButton",
+			x : layout.width - 32,
+			y : 0,
+			width : 32,
+			height : 32,
+			image : imageDelete,
+			visible : false
+		});
 
-	childButton.on('click', function (evt) {
-		ShapeFactory.prototype.eventOnChildButtonClick(evt, node, childButton);
-	});
+	var editButton = new Kinetic.Image({
+			name : "editButton",
+			x : 0,
+			y : 0,
+			width : 32,
+			height : 32,
+			image : imageEdit,
+			visible : false
+		});
+
+	if (node.drawData.expanded) {
+		childButton.setImage(imageCollapse);
+	} else {
+		childButton.setImage(imageExpand);
+	}
 
 	identityGroup.add(card);
 	identityGroup.add(headShot);
@@ -86,10 +128,38 @@ ShapeFactory.prototype.createIdentityCard = function (node, layout) {
 		identityGroup.add(childButton);
 	}
 
+	identityGroup.add(removeButton);
+	identityGroup.add(editButton);
+
+	childButton.on('click', function (evt) {
+		eventOnChildButtonClick(evt, node, childButton);
+		evt.cancelBubble = true;
+	});
+
+	identityGroup.on('mouseenter', function (evt) {
+		removeButton.setVisible(true);
+		editButton.setVisible(true);
+		evt.shape.getLayer().draw();
+	});
+
+	identityGroup.on('mouseleave', function (evt) {
+		removeButton.setVisible(false);
+		editButton.setVisible(false);
+		evt.shape.getLayer().draw();
+	});
+
+	identityGroup.on('click tap', function (evt) {
+		removeButton.setVisible(true);
+		editButton.setVisible(true);
+		selectionLayer.setPosition(node.drawData.coordX - 10, node.drawData.coordY - 10);
+		selectionLayer.setVisible(true);
+		evt.shape.getStage().draw();
+	});
+
 	return identityGroup;
 }
 
-ShapeFactory.prototype.createLinksBetweenIdentityCards = function (parent, children, layout) {
+publicFct.createLinksBetweenIdentityCards = function (parent, children) {
 	var link = new Kinetic.Shape({
 			name : 'link',
 			drawFunc : function (canvas) {
@@ -126,12 +196,77 @@ ShapeFactory.prototype.createLinksBetweenIdentityCards = function (parent, child
 	return link;
 }
 
-ShapeFactory.prototype.createSelectionShape = function (parent, children, layout) {
-	var selectionShape = new Kinetic.Rect({
-			width : layout.width,
-			height : layout.height,
-			fill : 'C6E6F4',
-			stroke : 'A8D9EE',
-			strokeWidth : 3
+publicFct.createSelection = function () {
+	var buttonHeight = 64;
+	var buttonWidth = 64;
+	var selectionOffset = 20;
+
+	var selectionLayer = new Kinetic.Layer({
+			id : 'selectionLayer',
+			visible : false
 		});
+
+	var selectionShape = new Kinetic.Rect({
+			width : layout.width + selectionOffset,
+			height : layout.height + selectionOffset,
+			fill : 'grey',
+			opacity : 0.3,
+			cornerRadius : 20
+		});
+
+	var addParentButton = new Kinetic.Image({
+			name : "addParentButton",
+			x : layout.width - 150,
+			y : -buttonHeight + selectionOffset,
+			width : buttonWidth,
+			height : buttonHeight,
+			image: imageArrowUp
+		});
+
+	var addChildButton = new Kinetic.Image({
+			name : "addChildButton",
+			x : layout.width - 150,
+			y : layout.height,
+			width : buttonWidth,
+			height : buttonHeight,
+			image: imageArrowDown
+		});
+
+	var addPartnerButton = new Kinetic.Image({
+			name : "addPartnerButton",
+			x : layout.width,
+			y : (layout.height - buttonHeight + selectionOffset )/2,
+			width : buttonWidth,
+			height : buttonHeight,
+			image: imageArrowRight
+		});
+
+	addParentButton.on('click', function (evt) {
+		
+		evt.cancelBubble = true;
+	});
+
+	addChildButton.on('click', function (evt) {
+		
+		evt.cancelBubble = true;
+	});
+
+	addPartnerButton.on('click', function (evt) {
+		
+		evt.cancelBubble = true;
+	});
+
+	selectionLayer.add(selectionShape);
+	selectionLayer.add(addParentButton);
+	selectionLayer.add(addChildButton);
+	selectionLayer.add(addPartnerButton);
+
+	return selectionLayer;
 }
+
+publicFct.getSelectionLayer = function (){
+	return selectionLayer;
+}
+
+	return publicFct;
+})();

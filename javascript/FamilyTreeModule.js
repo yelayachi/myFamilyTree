@@ -4,8 +4,7 @@ var familyTreeModule = (function () {
 	var publicFct = {};
 	var tree,
 	layout,
-	stage,
-	shapeFactory;
+	stage;
 
 	/*
 	 *	Private function
@@ -86,7 +85,7 @@ var familyTreeModule = (function () {
 			var children = _.filter(layer.children, function(child){
 				return child.attrs.name === 'identity';
 			});
-			layer.add(shapeFactory.createLinksBetweenIdentityCards(parent, children, layout));
+			layer.add(shapeFactory.createLinksBetweenIdentityCards(parent, children));
 		})
 
 
@@ -131,7 +130,7 @@ var familyTreeModule = (function () {
 	function drawSiblingsInTheSameLayer(node) {
 		if (node.isRoot()) {
 			var layer = new Kinetic.Layer();
-			layer.add(shapeFactory.createIdentityCard(node, layout));
+			layer.add(shapeFactory.createIdentityCard(node));
 			stage.add(layer);
 		} else {
 			var nodesLayer = stage.get('#sonsOf:' + node.parent.id)[0];
@@ -140,10 +139,10 @@ var familyTreeModule = (function () {
 						id : 'sonsOf:' + node.parent.id,
 						name : 'brothers'
 					});
-				nodesLayer.add(shapeFactory.createIdentityCard(node, layout));
+				nodesLayer.add(shapeFactory.createIdentityCard(node));
 				stage.add(nodesLayer);
 			} else {
-				nodesLayer.add(shapeFactory.createIdentityCard(node, layout));
+				nodesLayer.add(shapeFactory.createIdentityCard(node));
 			}
 		}
 	}
@@ -173,7 +172,7 @@ var familyTreeModule = (function () {
 			var children = _.filter(layer.children, function(child){
 				return child.attrs.name === 'identity';
 			});
-			layer.add(shapeFactory.createLinksBetweenIdentityCards(parent, children, layout));
+			layer.add(shapeFactory.createLinksBetweenIdentityCards(parent, children));
 		})
 	}
 
@@ -182,7 +181,10 @@ var familyTreeModule = (function () {
 		drawIdentities(tree);
 		drawLinks();
 
-		stage.setOffset( - (stage.getWidth() - layout.width * stage.getScale().x) / (2 * stage.getScale().x), 0);
+		stage.add(shapeFactory.getSelectionLayer());
+		shapeFactory.getSelectionLayer().moveToBottom();
+
+		stage.setOffset( - (stage.getWidth() - layout.width * stage.getScale().x) / (2 * stage.getScale().x), -100* stage.getScale().x);
 		stage.draw();
 	}
 
@@ -219,12 +221,15 @@ var familyTreeModule = (function () {
 		document.getElementById("treeCanvas").addEventListener("mousewheel", function (e) {
 			var zoomAmount = e.wheelDeltaY * 0.0001;
 			stage.setScale(stage.getScale().x + zoomAmount);
-			stage.setOffset( - (stage.getWidth() - layout.width * stage.getScale().x) / (2 * stage.getScale().x), 0);
+			stage.setOffset( - (stage.getWidth() - layout.width * stage.getScale().x) / (2 * stage.getScale().x), -100* stage.getScale().x);
 			stage.draw();
 			e.preventDefault();
 		}, false);
 		
 		shapeFactory.bindEvt('childButton', extendCollapseChildEvt);
+		shapeFactory.bindEvt('addParentButton', null);
+		shapeFactory.bindEvt('addChildButton', null);
+		shapeFactory.bindEvt('addPartnerButton', null);
 	}
 
 	/*
@@ -240,7 +245,7 @@ var familyTreeModule = (function () {
 				scale : 0.5
 			});
 		layout = new FamilyTreeLayout(settings);
-		shapeFactory = new ShapeFactory();
+		shapeFactory.init({layout : layout});
 		bindUIActions();
 	}
 
