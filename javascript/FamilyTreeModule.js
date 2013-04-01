@@ -16,7 +16,7 @@ var familyTreeModule = (function () {
 
 	function extendCollapseChildEvt(evt, node, childButton) {
 		node.drawData.expanded = !node.drawData.expanded;
-		var clickedId = evt.shape.parent.getId();
+		var clickedId = evt.targetNode.parent.getId();
 
 		if (node.drawData.expanded) {
 			childButton.setImage(shapeFactory.imageCollapse);
@@ -89,7 +89,7 @@ var familyTreeModule = (function () {
 		})
 
 
-			evt.shape.parent.draw();
+			evt.targetNode.parent.draw();
 			
 			
 
@@ -101,7 +101,7 @@ var familyTreeModule = (function () {
 					layerToRemove.remove();
 				}
 			});
-			evt.shape.parent.draw();
+			evt.targetNode.parent.draw();
 			layout.positionTree(tree);
 			if (tree.drawData.expanded) {
 				(function walkDown(subNode) {
@@ -180,9 +180,6 @@ var familyTreeModule = (function () {
 		layout.positionTree(tree);
 		drawIdentities(tree);
 		drawLinks();
-
-		stage.add(shapeFactory.getSelectionLayer());
-		shapeFactory.getSelectionLayer().moveToBottom();
 
 		stage.setOffset( - (stage.getWidth() - layout.width * stage.getScale().x) / (2 * stage.getScale().x), -100* stage.getScale().x);
 		stage.draw();

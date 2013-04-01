@@ -2,29 +2,9 @@
 
 var shapeFactory = (function () {
 	var publicFct = {};
-	var eventOnChildButtonClick, imageExpand, imageCollapse, imageArrowDown, imageArrowUp, imageArrowRight, imageDelete, imageEdit;
-	var layout, selectionLayer;
-
-    publicFct.init = function (settings) {
-    	layout = settings.layout;
-
-    	imageExpand = new Image();
-		imageExpand.src = 'images/toggle-expand.png';
-		imageCollapse = new Image();
-		imageCollapse.src = 'images/toggle-collapse.png';
-		imageArrowDown = new Image();
-		imageArrowDown.src = 'images/arrow_down.png';
-		imageArrowUp = new Image();
-		imageArrowUp.src = 'images/arrow_up.png';
-		imageArrowRight = new Image();
-		imageArrowRight.src = 'images/arrow_right.png';
-		imageDelete = new Image();
-		imageDelete.src = 'images/delete.png';
-		imageEdit = new Image();
-		imageEdit.src = 'images/edit.png';
-
-		selectionLayer = shapeFactory.createSelection();
-    };
+	var eventOnChildButtonClick, 
+	imageExpand, imageCollapse, imageArrowDown, imageArrowUp, imageArrowRight, imageDelete, imageEdit;
+	var layout, selectionGroup;
 
     /*
 	 *	Private function
@@ -136,24 +116,39 @@ publicFct.createIdentityCard = function (node) {
 		evt.cancelBubble = true;
 	});
 
+	removeButton.on('click', function (evt) {
+		
+		evt.cancelBubble = true;
+	});
+
+	editButton.on('click', function (evt) {
+		
+		evt.cancelBubble = true;
+	});
+
 	identityGroup.on('mouseenter', function (evt) {
 		removeButton.setVisible(true);
 		editButton.setVisible(true);
-		evt.shape.getLayer().draw();
+		evt.targetNode.getLayer().draw();
 	});
 
 	identityGroup.on('mouseleave', function (evt) {
 		removeButton.setVisible(false);
 		editButton.setVisible(false);
-		evt.shape.getLayer().draw();
+		evt.targetNode.getLayer().draw();
 	});
 
 	identityGroup.on('click tap', function (evt) {
 		removeButton.setVisible(true);
 		editButton.setVisible(true);
-		selectionLayer.setPosition(node.drawData.coordX - 10, node.drawData.coordY - 10);
-		selectionLayer.setVisible(true);
-		evt.shape.getStage().draw();
+		if(!_.isUndefined(selectionGroup)){
+			selectionGroup.removeChildren();
+			//selectionGroup.parent.remove(selectionGroup);
+		}
+		selectionGroup = shapeFactory.createSelection(node);
+			identityGroup.add(selectionGroup);
+			selectionGroup.moveToBottom();
+		evt.targetNode.getStage().draw();
 	});
 
 	return identityGroup;
@@ -196,14 +191,15 @@ publicFct.createLinksBetweenIdentityCards = function (parent, children) {
 	return link;
 }
 
-publicFct.createSelection = function () {
+publicFct.createSelection = function (node) {
 	var buttonHeight = 64;
 	var buttonWidth = 64;
 	var selectionOffset = 20;
 
-	var selectionLayer = new Kinetic.Layer({
+	var selectionLayer = new Kinetic.Group({
 			id : 'selectionLayer',
-			visible : false
+			x : - selectionOffset / 2,
+			y : - selectionOffset / 2
 		});
 
 	var selectionShape = new Kinetic.Rect({
@@ -242,22 +238,30 @@ publicFct.createSelection = function () {
 		});
 
 	addParentButton.on('click', function (evt) {
-		
+		console.log('adding parent to '+ node.id);
 		evt.cancelBubble = true;
 	});
 
 	addChildButton.on('click', function (evt) {
-		
+		console.log('adding child to '+ node.id);
+		$('#registration').dialog({
+            modal: true,     
+            height: 400,
+            width: 400,
+            title: 'Dynamically Loaded Page'
+        });
 		evt.cancelBubble = true;
 	});
 
 	addPartnerButton.on('click', function (evt) {
-		
+		console.log('adding partner to '+ node.id);
 		evt.cancelBubble = true;
 	});
 
 	selectionLayer.add(selectionShape);
-	selectionLayer.add(addParentButton);
+	if(node.isRoot()){
+		selectionLayer.add(addParentButton);
+	}
 	selectionLayer.add(addChildButton);
 	selectionLayer.add(addPartnerButton);
 
@@ -267,6 +271,25 @@ publicFct.createSelection = function () {
 publicFct.getSelectionLayer = function (){
 	return selectionLayer;
 }
+
+publicFct.init = function (settings) {
+    	layout = settings.layout;
+
+    	imageExpand = new Image();
+		imageExpand.src = 'images/toggle-expand.png';
+		imageCollapse = new Image();
+		imageCollapse.src = 'images/toggle-collapse.png';
+		imageArrowDown = new Image();
+		imageArrowDown.src = 'images/arrow_down.png';
+		imageArrowUp = new Image();
+		imageArrowUp.src = 'images/arrow_up.png';
+		imageArrowRight = new Image();
+		imageArrowRight.src = 'images/arrow_right.png';
+		imageDelete = new Image();
+		imageDelete.src = 'images/delete.png';
+		imageEdit = new Image();
+		imageEdit.src = 'images/edit.png';
+    };
 
 	return publicFct;
 })();

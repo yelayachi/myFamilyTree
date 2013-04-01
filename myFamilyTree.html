@@ -5,14 +5,16 @@
 <title>my Family Tree</title>
 
 <!-- CSS Files -->
+<link type="text/css" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" rel="stylesheet" />
 <link type="text/css" href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/css/bootstrap-combined.min.css" rel="stylesheet" />
 <link type="text/css" href="css/base.css" rel="stylesheet" />
 
 
 <!-- 3rd Library File -->
 <script language="javascript" type="text/javascript" src="javascript/third-party/jquery-1.9.0.min.js"></script>
-<script language="javascript" type="text/javascript" src="javascript/third-party/kinetic-v4.3.1.min.js"></script>
+<script language="javascript" type="text/javascript" src="javascript/third-party/kinetic-v4.4.0.min.js"></script>
 <script language="javascript" type="text/javascript" src="javascript/third-party/underscore-1.4.4.min.js"></script>
+<script language="javascript" type="text/javascript" src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
 
 <!-- mine Library File -->
 <script language="javascript" type="text/javascript" src="javascript/ShapeFactory.js"></script>
@@ -25,7 +27,34 @@
 
 <body>
 	<div id="treeCanvas"></div>    
-<div id="log"></div>
+<div id="registration">
+ <h2>Création / Edition</h2>
+
+ <form id="RegisterUserForm" action="" method="post">
+ <fieldset>
+ <p>
+ <label for="name">Nom Complet</label>
+ <input id="name" name="name" type="text" class="text" value="" />
+ </p>
+
+ <p>
+ <label for="tel">Date de naissance</label>
+ <input id="tel" name="tel" type="tel" class="text" value="" />
+ </p>
+
+ <p>
+ <label for="email">Sexe</label>
+ <input id="email" name="email" type="email" class="text" value="" />
+ </p>
+
+ <p>
+ <button id="registerNew" type="submit">Valider</button>
+ <button id="registerNew" type="submit">Annuler</button>
+ </p>
+ </fieldset>
+
+ </form>
+ </div>
 
 </body>
 </html>
