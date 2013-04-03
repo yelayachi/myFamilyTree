@@ -142,8 +142,7 @@ publicFct.createIdentityCard = function (node) {
 		removeButton.setVisible(true);
 		editButton.setVisible(true);
 		if(!_.isUndefined(selectionGroup)){
-			selectionGroup.removeChildren();
-			//selectionGroup.parent.remove(selectionGroup);
+			selectionGroup.destroy();
 		}
 		selectionGroup = shapeFactory.createSelection(node);
 			identityGroup.add(selectionGroup);
