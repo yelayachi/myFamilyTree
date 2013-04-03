@@ -11,3 +11,6 @@ html, body{
 #registration {
 	display: none;
 }
+
+form p { position:relative }
+form p label { position: absolute; top: 0; left: 0;}

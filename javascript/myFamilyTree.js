@@ -7,4 +7,5 @@
 	});
 	familyTreeModule.display(treeJson);
 	
+	$("label").inFieldLabels();
 });
