@@ -27,11 +27,17 @@
 </head>
 
 <body>
+	<div id="toolbar" class="ui-widget-header ui-corner-all">
+  <button id="save">Sauvegarder</button>
+  <button id="cancel">Annuler</button>
+  <button id="redo">Refaire</button>
+</div>
+
 	<div id="treeCanvas"></div>    
 <div id="createEdit">
  <h2>Création / Edition</h2>
 
- <form id="CreateEditPersonForm" action="" method="post">
+ 
  <fieldset>
  <p>
  <label for="name">Nom Complet</label>
@@ -49,12 +55,12 @@
  </p>
 
  <p>
- <button id="registerNew" type="submit">Valider</button>
- <button id="registerNew" type="submit">Annuler</button>
+ <button id="registerNew">Valider</button>
+ <button id="registerNew">Annuler</button>
  </p>
  </fieldset>
 
- </form>
+ 
  </div>
 
 </body>

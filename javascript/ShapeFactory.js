@@ -243,7 +243,7 @@ publicFct.createSelection = function (node) {
 
 	addChildButton.on('click', function (evt) {
 		console.log('adding child to '+ node.id);
-		$('#registration').dialog({
+		$('#createEdit').dialog({
             modal: true,     
             height: 400,
             width: 400,
